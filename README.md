@@ -1,4 +1,4 @@
- _/=/_adaptiveengineer_\=\_ module defines an advanced, adaptive agent called AliveLoopNode for multi-agent simulations. 
+ \_adaptiveengineer_/ module defines an advanced, adaptive agent called AliveLoopNode for multi-agent simulations. 
  It models a socially-aware, energetically-limited node capable of interacting with others through rich, 
  production-quality signal mechanisms (including deduplication, DLQ, partitioned queues, etc.). 
  Each node manages complex internal states—energy, memory with privacy controls, emotional health (anxiety, joy, grief, curiosity, resilience, etc.)
