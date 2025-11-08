@@ -1,10 +1,13 @@
 import logging
 import uuid
 from collections import deque
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any,Optional, List, Dict 
 from enum import Enum 
-from collections import OrderedDict import threading import time import sys
+from collections import OrderedDict
+import threading
+import time
+import sys
 
 import numpy as np
 
@@ -25,23 +28,32 @@ logger = logging.getLogger('alive_node')
 logger.setLevel(logging.WARNING)  # Only show warnings and errors
 
 
+class MemoryType(str, Enum):
+    REWARD = "reward"
+    SHARED = "shared"
+    PREDICTION = "prediction"
+    PATTERN = "pattern"
+    SHORT = "short"  # dedicated short-term memory type
+
+class Classification(str, Enum):
+    PUBLIC = "public"
+    PROTECTED = "protected"
+    PRIVATE = "private"
+    CONFIDENTIAL = "confidential"
+
 @dataclass
-class MemoryType(str, Enum): REWARD = "reward" SHARED = "shared" PREDICTION = "prediction" PATTERN = "pattern" SHORT = "short" # dedicated short-term memory type
-
-class Classification(str, Enum): PUBLIC = "public" PROTECTED = "protected" PRIVATE = "private" CONFIDENTIAL = "confidential"
-
-@dataclass class Memory: """Structured memory with importance weighting and privacy controls.
-
-Code
-Fields
-- timestamp: integer epoch seconds when the memory was created (int(time.time()))
-- retention_limit: seconds to keep this memory before auto-expiry (None = keep)
-- size_mb: optional approximate size in megabytes (used by short-term store)
-"""
-content: Any
-importance: float
-timestamp: int
-memory_type: MemoryType
+class Memory:
+    """Structured memory with importance weighting and privacy controls.
+    
+    Fields:
+    - timestamp: integer epoch seconds when the memory was created (int(time.time()))
+    - retention_limit: seconds to keep this memory before auto-expiry (None = keep)
+    - size_mb: optional approximate size in megabytes (used by short-term store)
+    """
+    content: Any
+    importance: float
+    timestamp: int
+    memory_type: MemoryType
 emotional_valence: float = 0.0  # -1.0 .. +1.0
 decay_rate: float = 0.95  # per age() call
 access_count: int = 0
