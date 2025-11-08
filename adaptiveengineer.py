@@ -141,7 +141,7 @@ class AliveLoopNode:
         # Memory systems
         self.memory = []  # List of Memory objects
         self.long_term_memory = {}
-        self.working_memory = deque(maxlen=50)
+        self.working_memory = deque(maxlen=250)
         self.predicted_energy = self.energy
 
         # Behavioral attributes
