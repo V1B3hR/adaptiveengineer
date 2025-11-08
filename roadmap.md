@@ -1,6 +1,12 @@
 # Adaptive Engineering Node Roadmap for IT & Cybersecurity
 
-This roadmap guides the adaptation and evolution of the "AliveLoopNode" (soon to be named SocioAdaptiveAgent or similar) for real-world IT Operations and Cybersecurity use cases.
+This roadmap guides the adaptation and evolution of the "AliveLoopNode" from adaptivenauralnetwork for real-world IT Operations and Cybersecurity use cases.
+
+Cybersecurity is about protecting systems, data, and identities, but increasingly overlaps with AL approaches. For example:
+
+Adaptive cybersecurity: Defensive "organisms" that mutate or adapt to threats, swarm intelligence for detection, or artificial immune systems (AIS).
+Evolving malware: Malware that adapts or "evolves" (e.g., through genetic programming) is already using AL-inspired methods.
+Resilience and swarm defense: Bio-inspired algorithms to coordinate multiple systems in detecting/responding to attacks.
 
 ---
 
