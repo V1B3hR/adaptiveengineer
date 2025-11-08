@@ -13,6 +13,9 @@ The **adaptiveengineer** module provides:
 - **Secure Messaging**: Rich message types with idempotency, tracing, and replay support
 - **Event Integrations**: Real-time streaming to SIEM, AIOps, and monitoring tools
 - **Incident Memory**: Pattern recognition and learning from historical events
+- **Evolutionary Learning**: Genetic algorithms for strategy optimization
+- **Adaptive Learning**: Auto-tuning thresholds and learning normal behavior
+- **Byzantine-Resilient Consensus**: Fault-tolerant distributed decision making
 
 ## Features
 
@@ -28,6 +31,12 @@ The **adaptiveengineer** module provides:
 - **Security Plugin**: Threat detection, anomaly scoring, defense posture management
 - **Artificial Life Plugin**: Wraps existing AL behaviors in extensible plugin interface
 - **Communication Plugin**: Secure messaging, event streaming, incident memory with pattern recognition
+
+### Learning & Consensus (Phase 3)
+- **Evolution Engine**: Genetic algorithms evolve detection, mitigation, and recovery strategies
+- **Adaptive Learning**: Learn normal behavior patterns and auto-tune thresholds
+- **Byzantine-Resilient Consensus**: Tolerate up to 33% malicious nodes in distributed voting
+- **Trust Network**: Detect compromised nodes and discount unreliable input
 
 ## Quick Start
 
@@ -84,10 +93,22 @@ Demonstrates:
 3. Incident memory with pattern recognition
 4. Privacy controls and compliance features
 
+**Phase 3: Learning, Evolution, Trust, and Consensus**
+```bash
+python3 example_phase3.py
+```
+
+Demonstrates:
+1. Evolutionary learning with genetic algorithms
+2. Adaptive learning and auto-tuning thresholds
+3. Byzantine fault detection and resilience
+4. Distributed consensus in adversarial environments
+
 ## Documentation
 
 - [Phase 1 Implementation](PHASE1_IMPLEMENTATION.md) - Plugin system and self-organization
 - [Phase 2 Implementation](PHASE2_IMPLEMENTATION.md) - Communication, security, and incident memory
+- [Phase 3 Implementation](PHASE3_IMPLEMENTATION.md) - Learning, evolution, trust, and consensus
 - [Roadmap](roadmap.md) - Full development roadmap with all planned phases
 
 ## Architecture
