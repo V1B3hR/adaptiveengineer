@@ -43,6 +43,7 @@ This roadmap guides the adaptation and evolution of the "AliveLoopNode" (soon to
   - Self-tune thresholds based on historical trends
   - Learn “normal” for service/traffic/error metrics
   - Classify threat types and likely resolutions
+  - Support online/continual learning to adapt to evolving threats and systems
 
 ---
 
