@@ -6,12 +6,19 @@ Demonstrates:
 2. Adaptive self-healing cyber defenses
 3. Biological-inspired swarm coordination
 4. Evolving adversary simulation
+
+Usage:
+    python3 example/example_phase4.py
 """
 
 import logging
 import sys
+import os
 import time
 import random
+
+# Add parent directory to path to allow imports from root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Setup logging
 logging.basicConfig(

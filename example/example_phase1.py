@@ -8,11 +8,15 @@ This example shows:
 3. Emergency & Self-Organization - Auto-organization under stress
 
 Usage:
-    python3 example_phase1.py
+    python3 example/example_phase1.py
 """
 
 import logging
 import sys
+import os
+
+# Add parent directory to path to allow imports from root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import core plugin system
 from core.plugin_base import PluginBase, StateVariable

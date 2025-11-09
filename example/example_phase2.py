@@ -8,12 +8,16 @@ This example shows:
 3. Incident and Pattern Memory - Persistent storage, pattern recognition, learning
 
 Usage:
-    python3 example_phase2.py
+    python3 example/example_phase2.py
 """
 
 import logging
 import sys
+import os
 import time
+
+# Add parent directory to path to allow imports from root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import core plugin system
 from core.plugin_manager import PluginManager

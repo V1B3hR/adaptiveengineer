@@ -84,7 +84,7 @@ manager.update_all(delta_time=1.0)
 
 **Phase 1: Core Foundations & Emergency Self-Organization**
 ```bash
-python3 example_phase1.py
+python3 example/example_phase1.py
 ```
 
 Demonstrates:
@@ -95,7 +95,7 @@ Demonstrates:
 
 **Phase 2: Communication, Security, and Incident Memory**
 ```bash
-python3 example_phase2.py
+python3 example/example_phase2.py
 ```
 
 Demonstrates:
@@ -106,7 +106,7 @@ Demonstrates:
 
 **Phase 3: Learning, Evolution, Trust, and Consensus**
 ```bash
-python3 example_phase3.py
+python3 example/example_phase3.py
 ```
 
 Demonstrates:
@@ -117,7 +117,7 @@ Demonstrates:
 
 **Phase 4: Autonomy, Adaptive Defenses, and Collaboration**
 ```bash
-python3 example_phase4.py
+python3 example/example_phase4.py
 ```
 
 Demonstrates:
@@ -129,7 +129,7 @@ Demonstrates:
 
 **Phase 5: Advanced Features, Openness, and Large-Scale Simulation**
 ```bash
-python3 example_phase5.py
+python3 example/example_phase5.py
 ```
 
 Demonstrates:
@@ -141,11 +141,11 @@ Demonstrates:
 
 ## Documentation
 
-- [Phase 1 Implementation](PHASE1_IMPLEMENTATION.md) - Plugin system and self-organization
-- [Phase 2 Implementation](PHASE2_IMPLEMENTATION.md) - Communication, security, and incident memory
-- [Phase 3 Implementation](PHASE3_IMPLEMENTATION.md) - Learning, evolution, trust, and consensus
-- [Phase 4 Implementation](PHASE4_IMPLEMENTATION.md) - Autonomy, adaptive defenses, and collaboration
-- [Phase 5 Implementation](PHASE5_IMPLEMENTATION.md) - Advanced features, openness, and large-scale
+- [Phase 1 Implementation](phaseimplementation/PHASE1_IMPLEMENTATION.md) - Plugin system and self-organization
+- [Phase 2 Implementation](phaseimplementation/PHASE2_IMPLEMENTATION.md) - Communication, security, and incident memory
+- [Phase 3 Implementation](phaseimplementation/PHASE3_IMPLEMENTATION.md) - Learning, evolution, trust, and consensus
+- [Phase 4 Implementation](phaseimplementation/PHASE4_IMPLEMENTATION.md) - Autonomy, adaptive defenses, and collaboration
+- [Phase 5 Implementation](phaseimplementation/PHASE5_IMPLEMENTATION.md) - Advanced features, openness, and large-scale
 - [Roadmap](roadmap.md) - Full development roadmap with all planned phases
 
 ## Architecture

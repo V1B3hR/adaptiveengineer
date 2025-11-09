@@ -5,12 +5,19 @@ Demonstrates:
 1. Openness & Complexity (AL Principle #5) - Adaptation to unpredictable environments
 2. Human-in-the-Loop Ethics, Privacy, and Compliance
 3. Large-Scale Simulation & Field Deployment
+
+Usage:
+    python3 example/example_phase5.py
 """
 
 import logging
 import sys
+import os
 import time
 import random
+
+# Add parent directory to path to allow imports from root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Setup logging
 logging.basicConfig(

@@ -7,13 +7,17 @@ This example shows:
 2. Trust Network & Byzantine-Resilient Consensus - Byzantine fault tolerance
 
 Usage:
-    python3 example_phase3.py
+    python3 example/example_phase3.py
 """
 
 import logging
 import sys
+import os
 import time
 import random
+
+# Add parent directory to path to allow imports from root
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # Import Phase 3 components
 from core.evolution_engine import EvolutionEngine, Strategy, StrategyType
