@@ -54,141 +54,141 @@ class Memory:
     importance: float
     timestamp: int
     memory_type: MemoryType
-emotional_valence: float = 0.0  # -1.0 .. +1.0
-decay_rate: float = 0.95  # per age() call
-access_count: int = 0
-source_node: Optional[int] = None
-validation_count: int = 0
+    emotional_valence: float = 0.0  # -1.0 .. +1.0
+    decay_rate: float = 0.95  # per age() call
+    access_count: int = 0
+    source_node: Optional[int] = None
+    validation_count: int = 0
 
-# Privacy controls
-private: bool = False
-classification: Classification = Classification.PUBLIC
-retention_limit: Optional[int] = None  # seconds
-audit_log: List[str] = field(default_factory=list)
+    # Privacy controls
+    private: bool = False
+    classification: Classification = Classification.PUBLIC
+    retention_limit: Optional[int] = None  # seconds
+    audit_log: List[str] = field(default_factory=list)
 
-# approx size in MB; if zero, stores/short-store will estimate
-size_mb: float = 0.0
+    # approx size in MB; if zero, stores/short-store will estimate
+    size_mb: float = 0.0
 
-# internal lock for thread-safety when updating mutable fields
-_lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
+    # internal lock for thread-safety when updating mutable fields
+    _lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
 
-def __post_init__(self):
-    # normalize enum/string input
-    if isinstance(self.memory_type, str):
-        self.memory_type = MemoryType(self.memory_type)
-    if isinstance(self.classification, str):
-        self.classification = Classification(self.classification)
+    def __post_init__(self):
+        # normalize enum/string input
+        if isinstance(self.memory_type, str):
+            self.memory_type = MemoryType(self.memory_type)
+        if isinstance(self.classification, str):
+            self.classification = Classification(self.classification)
 
-    # clamp vals
-    try:
-        self.emotional_valence = float(self.emotional_valence)
-    except Exception:
-        self.emotional_valence = 0.0
-    self.emotional_valence = max(-1.0, min(1.0, self.emotional_valence))
+        # clamp vals
+        try:
+            self.emotional_valence = float(self.emotional_valence)
+        except Exception:
+            self.emotional_valence = 0.0
+        self.emotional_valence = max(-1.0, min(1.0, self.emotional_valence))
 
-    try:
-        self.importance = max(0.0, float(self.importance))
-    except Exception:
-        self.importance = 0.0
-
-    # compute timestamp default if invalid
-    if not isinstance(self.timestamp, int) or self.timestamp <= 0:
-        self.timestamp = int(time.time())
-
-def is_short(self) -> bool:
-    return self.memory_type == MemoryType.SHORT
-
-def is_expired(self, current_time: Optional[int] = None) -> bool:
-    """Return True if retention_limit is set and memory age exceeds it."""
-    now = int(current_time or time.time())
-    if self.retention_limit is None:
-        return False
-    return (now - self.timestamp) > self.retention_limit
-
-def age(self, current_time: Optional[int] = None) -> None:
-    """Apply decay to importance and check expiry.
-
-    Call periodically. Uses a dynamic decay factor influenced by emotional valence
-    without permanently overwriting the configured decay_rate.
-    """
-    now = int(current_time or time.time())
-
-    # compute dynamic decay; strong emotions reduce decay (i.e., memory persists longer)
-    dynamic_decay = self.decay_rate
-    ev = abs(self.emotional_valence)
-    if ev > 0.7:
-        # small bonus to reduce decay; clipped conservatively
-        bonus = min(0.997 - self.decay_rate, (ev - 0.7) * 0.1)
-        dynamic_decay = min(0.997, self.decay_rate + bonus)
-
-    with self._lock:
-        self.importance *= dynamic_decay
-        # floor tiny values to zero
-        if self.importance < 1e-9:
+        try:
+            self.importance = max(0.0, float(self.importance))
+        except Exception:
             self.importance = 0.0
 
-        # expiration check based on current time
-        if self.is_expired(now):
-            self.importance = 0.0
+        # compute timestamp default if invalid
+        if not isinstance(self.timestamp, int) or self.timestamp <= 0:
+            self.timestamp = int(time.time())
 
-def access(self, accessor_id: int, current_time: Optional[int] = None, summary: bool = False) -> Any:
-    """Access memory content with audit logging and privacy rules.
+    def is_short(self) -> bool:
+        return self.memory_type == MemoryType.SHORT
 
-    - Logs actual access time.
-    - Returns redacted/summary content depending on classification and accessor.
-    """
-    now = int(current_time or time.time())
-    with self._lock:
-        self.access_count += 1
-        self.audit_log.append(f"accessed_by_{accessor_id}_at_{now}")
+    def is_expired(self, current_time: Optional[int] = None) -> bool:
+        """Return True if retention_limit is set and memory age exceeds it."""
+        now = int(current_time or time.time())
+        if self.retention_limit is None:
+            return False
+        return (now - self.timestamp) > self.retention_limit
 
-    # Access control
-    if self.classification == Classification.PRIVATE and accessor_id != self.source_node:
-        return "[REDACTED]"
+    def age(self, current_time: Optional[int] = None) -> None:
+        """Apply decay to importance and check expiry.
 
-    if self.classification == Classification.CONFIDENTIAL and accessor_id != self.source_node:
-        return "[REDACTED - CONFIDENTIAL]"
+        Call periodically. Uses a dynamic decay factor influenced by emotional valence
+        without permanently overwriting the configured decay_rate.
+        """
+        now = int(current_time or time.time())
 
-    if self.classification == Classification.PROTECTED and accessor_id != self.source_node:
-        text = str(self.content)
-        if summary or len(text) > 100:
-            return f"[SUMMARY: {text[:100]}...]"
-        return f"[LIMITED: {text[:200]}]"
+        # compute dynamic decay; strong emotions reduce decay (i.e., memory persists longer)
+        dynamic_decay = self.decay_rate
+        ev = abs(self.emotional_valence)
+        if ev > 0.7:
+            # small bonus to reduce decay; clipped conservatively
+            bonus = min(0.997 - self.decay_rate, (ev - 0.7) * 0.1)
+            dynamic_decay = min(0.997, self.decay_rate + bonus)
 
-    # PUBLIC or owner/source_node: return full content
-    return self.content
+        with self._lock:
+            self.importance *= dynamic_decay
+            # floor tiny values to zero
+            if self.importance < 1e-9:
+                self.importance = 0.0
 
-def to_dict(self, redact_for: Optional[int] = None) -> Dict[str, Any]:
-    """Serialize memory. If redact_for provided, content is produced via access(redact_for)."""
-    data = {
-        "content": self.content,
-        "importance": self.importance,
-        "timestamp": self.timestamp,
-        "memory_type": self.memory_type.value,
-        "emotional_valence": self.emotional_valence,
-        "decay_rate": self.decay_rate,
-        "access_count": self.access_count,
-        "source_node": self.source_node,
-        "validation_count": self.validation_count,
-        "private": self.private,
-        "classification": self.classification.value,
-        "retention_limit": self.retention_limit,
-        "audit_log": list(self.audit_log),
-        "size_mb": self.size_mb,
-    }
-    if redact_for is not None:
-        data["content"] = self.access(redact_for)
-    return data
+            # expiration check based on current time
+            if self.is_expired(now):
+                self.importance = 0.0
 
-def update_content(self, new_content: Any, importance_delta: Optional[float] = None) -> None:
-    """Safely update content and optionally adjust importance."""
-    with self._lock:
-        self.content = new_content
-        if importance_delta is not None:
-            try:
-                self.importance = max(0.0, float(self.importance + importance_delta))
-            except Exception:
-                pass
+    def access(self, accessor_id: int, current_time: Optional[int] = None, summary: bool = False) -> Any:
+        """Access memory content with audit logging and privacy rules.
+
+        - Logs actual access time.
+        - Returns redacted/summary content depending on classification and accessor.
+        """
+        now = int(current_time or time.time())
+        with self._lock:
+            self.access_count += 1
+            self.audit_log.append(f"accessed_by_{accessor_id}_at_{now}")
+
+        # Access control
+        if self.classification == Classification.PRIVATE and accessor_id != self.source_node:
+            return "[REDACTED]"
+
+        if self.classification == Classification.CONFIDENTIAL and accessor_id != self.source_node:
+            return "[REDACTED - CONFIDENTIAL]"
+
+        if self.classification == Classification.PROTECTED and accessor_id != self.source_node:
+            text = str(self.content)
+            if summary or len(text) > 100:
+                return f"[SUMMARY: {text[:100]}...]"
+            return f"[LIMITED: {text[:200]}]"
+
+        # PUBLIC or owner/source_node: return full content
+        return self.content
+
+    def to_dict(self, redact_for: Optional[int] = None) -> Dict[str, Any]:
+        """Serialize memory. If redact_for provided, content is produced via access(redact_for)."""
+        data = {
+            "content": self.content,
+            "importance": self.importance,
+            "timestamp": self.timestamp,
+            "memory_type": self.memory_type.value,
+            "emotional_valence": self.emotional_valence,
+            "decay_rate": self.decay_rate,
+            "access_count": self.access_count,
+            "source_node": self.source_node,
+            "validation_count": self.validation_count,
+            "private": self.private,
+            "classification": self.classification.value,
+            "retention_limit": self.retention_limit,
+            "audit_log": list(self.audit_log),
+            "size_mb": self.size_mb,
+        }
+        if redact_for is not None:
+            data["content"] = self.access(redact_for)
+        return data
+
+    def update_content(self, new_content: Any, importance_delta: Optional[float] = None) -> None:
+        """Safely update content and optionally adjust importance."""
+        with self._lock:
+            self.content = new_content
+            if importance_delta is not None:
+                try:
+                    self.importance = max(0.0, float(self.importance + importance_delta))
+                except Exception:
+                    pass
 
 class ShortMemoryStore: """Thread-safe LRU short-term memory store with MB capacity accounting.
 
