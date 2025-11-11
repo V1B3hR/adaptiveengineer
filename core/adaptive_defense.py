@@ -77,9 +77,8 @@ class DefenseResponse:
     audit_trail: List[str] = field(default_factory=list)
 
 
-@dataclass
+@dataclass(frozen=True)
 class HealingResponse:
-    """Record of a healing action taken"""
     response_id: str
     timestamp: float
     healing_action: HealingAction
@@ -87,7 +86,14 @@ class HealingResponse:
     success: bool
     recovery_time: float  # seconds
     audit_trail: List[str] = field(default_factory=list)
+    reason: Optional[str] = None
+    failure_reason: Optional[str] = None
+    error_code: Optional[str] = None
+    verification_passed: Optional[bool] = None
+    schema_version: int = 1
 
+def make_heal_id(node_id: int) -> str:
+    return f"heal_{node_id}_{uuid4()}"
 
 class AdaptiveDefenseSystem:
     """
