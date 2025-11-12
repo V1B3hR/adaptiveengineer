@@ -57,10 +57,47 @@ Our goal is to create a digital society of agents that can collectively manage c
     *   Potential hooks include connectors for: cloud provider APIs (AWS, GCP), infrastructure-as-code definitions (Terraform states), and observability platforms (Prometheus, Datadog).
 
 **Updated Goal of this Phase:** To have a running simulation where agents exist within a dynamic, graph-based representation of an IT system. Agents will be able to traverse the graph, sense the state of nodes and edges, and be directly affected by simulated system events like resource exhaustion and cascading failures. This provides a rich, realistic testbed for the evolution of intelligent, adaptive behavior.
-*   **[ ] Simple Sensory & Communication Protocol:**
-    *   Implement a basic "signal" or "pheromone" system.
-    *   Agents should be able to broadcast simple messages to their immediate neighbors (e.g., "resource found," "danger detected").
-    *   Agents should have a basic sensory system to perceive signals and their local environment.
+
+Absolutely. This is a critical component. A simplistic communication system will bottleneck the entire project's potential. To achieve complex, coordinated behavior in the "Living Graph" environment, the agents need a sensory and communication protocol that is as sophisticated as the environment itself.
+
+Let's engineer an advanced protocol that is fast, robust, and capable of conveying rich, contextual information.
+
+---
+
+### **Revised Phase 1 Feature: Advanced Sensory & Communication Protocol**
+
+**Objective:** To develop a high-performance, multi-layered sensory and communication system that enables agents to build a rich, real-time understanding of their environment and coordinate complex actions with precision and resilience.
+
+**Key Features:**
+
+*   **[ ] Multi-Layered Sensory System (Building Situational Awareness):**
+    *   Agents will possess a three-tiered sensory apparatus, moving from internal state to local perception to broad awareness.
+    *   **1. Proprioception (Self-Sensing):** The ability for an agent to be aware of its own internal state in real-time. This includes `Health`, `Energy Level`, `Current Task`, `Computational Load`, and its own `Trust Score`. This is the foundation of all autonomous decision-making.
+    *   **2. Local Environmental Sensing (The "Nerve Endings"):** Direct, high-speed sensing of the agent's current node and its immediate edges in the graph. This involves reading the node's attributes (`CPU Load`, `Active Threat Score`, etc.) and edge attributes (`Latency`, `Packet Drop Rate`) with minimal latency. This is the agent's sense of "touch."
+    *   **3. Graph-Level Awareness (The "Eyes and Ears"):** The ability to actively query information from non-local parts of the graph. This is not a "god-mode" view but a deliberate, resource-consuming action, analogous to an engineer running a diagnostic command. This prevents information overload and encourages efficient information gathering.
+
+*   **[ ] Structured, Multi-Modal Communication Protocol:**
+    *   We will move beyond a single "pheromone" system to a multi-modal protocol designed for different communication needs, prioritizing speed and efficiency.
+    *   **Mode 1: Pheromones (Ambient, Asynchronous Broadcast):**
+        *   **Mechanism:** A low-cost, fire-and-forget message left on a node that decays over time. It is designed for passive, non-critical, localized information.
+        *   **Use Case:** An agent passing through a node leaves a faint pheromone trail like `"Trace of anomalous process detected"` or `"Resource levels here are low."` Other agents sense this ambiently, influencing their future pathfinding and decision-making without requiring a direct conversation.
+        *   **Properties:** Extremely fast, low overhead, not guaranteed delivery, localized effect.
+    *   **Mode 2: Signals (Targeted, Synchronous Unicast/Multicast):**
+        *   **Mechanism:** A directed, point-to-point or point-to-group message sent with a clear intent. This requires a lightweight routing mechanism for agents to find each other on the graph.
+        *   **Use Case:** Agent A (a sensor) detects a critical threat at Node-DB-01 and sends a high-priority signal directly to the nearest available "Healer" or "Security" agent: `"CRITICAL_THREAT_DETECTED @ Node-DB-01; Type: SQL_INJECTION; Confidence: 95%."`
+        *   **Properties:** Targeted, reliable, higher overhead, for urgent and important communication.
+    *   **Mode 3: The "Grapevine" (Decentralized Gossip Protocol):**
+        *   **Mechanism:** Agents periodically exchange information with a random selection of other agents in the network. This ensures that important, non-urgent information eventually propagates throughout the entire collective.
+        *   **Use Case:** Spreading a newly learned threat signature, updating the reputation/trust score of another agent, or propagating a change in system-wide strategy.
+        *   **Properties:** Extremely robust, decentralized, scalable, and eventually consistent. The backbone for collective learning and social dynamics.
+
+*   **[ ] Standardized & Signed Message Schema:**
+    *   To ensure stability and security, all "Signal" and "Gossip" messages will adhere to a strict, parsable format (e.g., JSON, Protocol Buffers).
+    *   **Standard Fields:** `MessageID`, `SenderID`, `MessageType`, `Priority`, `Timestamp`, `TimeToLive (TTL)`.
+    *   **Structured Payload:** The message body will contain key-value pairs, not just raw text, allowing for easy parsing and interpretation (e.g., `{"event_type": "...", "location": "...", "severity": "..."}`).
+    *   **Cryptographic Signing:** Each message will be cryptographically signed by the sending agent. This allows the receiving agent to verify the sender's identity and ensures message integrity, forming the technical foundation for the "Trust Economy" in Phase 4.
+
+**Updated Goal of this Phase:** To have a robust communication and sensory framework where agents can not only react to their immediate surroundings but can also actively seek information, communicate with specific peers over long distances, and share knowledge reliably across the entire population. This system will be the central nervous system of the `adaptiveengineer` collective.
 
 *   **[ ] Agent Lifecycle:**
     *   Define the conditions for agent "birth" (instantiation) and "death" (removal from the simulation if health or energy hits zero).
