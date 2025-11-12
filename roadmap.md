@@ -24,9 +24,31 @@ Our goal is to create a digital society of agents that can collectively manage c
     *   Implement the fundamental agent states: `health`, `energy`, and a simple `emotion` or `status` metric (e.g., idle, working, stressed).
     *   Establish rules for energy consumption and regeneration.
 
-*   **[ ] Basic Environment Simulation:**
-    *   Develop a simple grid or network topology where agents can reside and move.
-    *   Introduce the concept of "resources" (e.g., data nodes, energy sources) that agents can interact with.
+Advanced Environment Simulation - The Living Graph
+Objective: To create a dynamic, graph-based environment that realistically models the complexity, dependencies, and volatility of modern IT systems. The environment is not a passive backdrop; it is a living, changing entity that provides the challenges and resources for the agent ecosystem.
+Key Features:
+[ ] Dynamic Graph Topology:
+Nodes as System Components: The environment will be represented as a directed graph where nodes are not abstract points, but concrete system components:
+Hardware Nodes: Servers, VMs, Routers, Switches.
+Software Nodes: Services, Applications, Databases, API Endpoints.
+Logical Nodes: Subnets, Security Groups, Cloud Regions.
+Edges as Relationships & Dependencies: Edges will represent the critical relationships between nodes:
+Network Connectivity: Defines network paths, protocols, and access rules.
+Service Dependency: Explicitly links services that depend on each other (e.g., Web App -> API -> Database).
+Data Flow: Represents the flow of information between components.
+Mutability: The graph is not static. It must be able to change in real-time to reflect the reality of modern infrastructure (e.g., CI/CD pipelines spinning up/down service nodes, auto-scaling events, network link failures).
+[ ] Rich Node and Edge Attributes:
+Every node and edge will have a set of dynamic attributes that serve as the primary sensory input for agents.
+Node Attributes: CPU Load, Memory Usage, Health Status (e.g., OK, DEGRADED, FAILED), Security Patch Level, Open Ports, Active Threat Score.
+Edge Attributes: Latency, Bandwidth Utilization, Packet Drop Rate, Firewall Rule Status.
+[ ] The "Physics Engine" - Simulating System Dynamics:
+Resource Dynamics: Agents will draw energy directly from the nodes they inhabit. A high-CPU node might provide more energy but at the cost of increasing its own "stress" level. This creates a natural incentive for agents to load-balance the system.
+Cascading Failures: The graph's dependency model will be active. The failure of a critical database node will propagate "damage" or "stress" to all dependent application nodes. This creates realistic, complex problem scenarios for the agents to solve.
+Environmental Stressors: The simulation will be able to introduce controlled stressors, such as simulated DDoS attacks (saturating edge bandwidth), resource exhaustion on a specific node, or the introduction of a "vulnerability" attribute to a software node.
+[ ] Real-World Integration Hooks:
+The graph will be designed with APIs to be populated from real-world data sources. This ensures the simulation remains grounded and can eventually be transitioned to manage a live system.
+Potential hooks include connectors for: cloud provider APIs (AWS, GCP), infrastructure-as-code definitions (Terraform states), and observability platforms (Prometheus, Datadog).
+Updated Goal of this Phase: To have a running simulation where agents exist within a dynamic, graph-based representation of an IT system. Agents will be able to traverse the graph, sense the state of nodes and edges, and be directly affected by simulated system events like resource exhaustion and cascading failures. This provides a rich, realistic testbed for the evolution of intelligent, adaptive behavior.
 
 *   **[ ] Simple Sensory & Communication Protocol:**
     *   Implement a basic "signal" or "pheromone" system.
