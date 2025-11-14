@@ -1,14 +1,14 @@
 {
   "generation": 10,
   "population_size": 20,
-  "mutation_rate": 0.07290000000000002,
+  "mutation_rate": 0.09000000000000001,
   "mutation_strength": 0.1,
   "crossover_rate": 0.7,
   "elitism_count": 2,
   "tournament_size": 5,
   "max_workers": 4,
   "random_state": null,
-  "timestamp": 1763161516.0686095,
+  "timestamp": 1763161965.6311862,
   "parameter_ranges": {
     "threshold": [
       0.5,

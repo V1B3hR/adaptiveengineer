@@ -1,382 +1,394 @@
 [
   {
-    "strategy_id": "776d9c9b-90ef-4774-b42e-a8749b9a074f",
+    "strategy_id": "cd2d0dca-3382-417e-be69-a41f66410aca",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.529489935195426,
-      "sensitivity": 0.7408917182769991,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.1
+      "threshold": 0.5949306429449935,
+      "sensitivity": 0.9266850092408032,
+      "response_time": 0.21452087018267268,
+      "false_positive_tolerance": 0.15290007161009356
     },
-    "fitness": 0.5685970103796831,
-    "generation": 13,
+    "fitness": 0.5345654040258363,
+    "generation": 1,
     "parent_ids": [
-      "ab51f7f4-551d-48fd-a687-e85743bac876"
+      "f5b2e0cd-1bff-4b31-b313-6307aec0eac7"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763161516.0610185,
+    "created_at": 1763161965.5827184,
     "evaluations": 1
   },
   {
-    "strategy_id": "9e396d44-2128-4ef4-8938-c7172363f20e",
+    "strategy_id": "4ae0d47f-610c-4ff0-920f-919f9f86fde4",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.7444031152764363,
-      "response_time": 0.10214100544683767,
-      "false_positive_tolerance": 0.18867351108307384
+      "threshold": 0.95,
+      "sensitivity": 0.9679987404768947,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.26576091415041014
     },
     "fitness": 0.0,
-    "generation": 16,
+    "generation": 10,
     "parent_ids": [
-      "b7ebc44e-bf99-4c6e-b082-79d6b7cad96f"
+      "b55ad2b1-5fb4-492c-899b-cdef74f568da",
+      "82bfbf9a-5fa3-48bb-9135-6c4deb320ddd"
     ],
-    "uncle_aunt_ids": [],
-    "birth_order": "singleton",
-    "created_at": 1763161516.0663445,
+    "uncle_aunt_ids": [
+      "6c9e0574-4ded-4ceb-84a2-4b8c8f5945a9",
+      "dcdd098e-e5c6-4d9c-ac54-1a2d6eb3d08b"
+    ],
+    "birth_order": "younger_sister",
+    "created_at": 1763161965.6289797,
     "evaluations": 0
   },
   {
-    "strategy_id": "a662b915-515c-46bd-adea-d2f408d3b6bf",
+    "strategy_id": "1555dfc9-d066-4dcb-af9b-731991fd31ca",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.529489935195426,
-      "sensitivity": 0.7408917182769991,
+      "threshold": 0.5949306429449935,
+      "sensitivity": 0.9679987404768947,
+      "response_time": 0.1107299451931054,
+      "false_positive_tolerance": 0.34999393835162457
+    },
+    "fitness": 0.0,
+    "generation": 12,
+    "parent_ids": [
+      "b55ad2b1-5fb4-492c-899b-cdef74f568da",
+      "ed9ffd21-9b30-4236-9c11-ba51446922ca"
+    ],
+    "uncle_aunt_ids": [
+      "30269f65-c763-4a9a-9f33-f630b62cb84f",
+      "82bfbf9a-5fa3-48bb-9135-6c4deb320ddd"
+    ],
+    "birth_order": "younger_sister",
+    "created_at": 1763161965.6290553,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "faf494fb-07f2-447f-a3fa-eb429bcc3be7",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5949306429449935,
+      "sensitivity": 0.943799915921061,
+      "response_time": 0.8371272094712184,
+      "false_positive_tolerance": 0.15290007161009356
+    },
+    "fitness": 0.0,
+    "generation": 3,
+    "parent_ids": [
+      "cd2d0dca-3382-417e-be69-a41f66410aca",
+      "b55ad2b1-5fb4-492c-899b-cdef74f568da"
+    ],
+    "uncle_aunt_ids": [
+      "6c9e0574-4ded-4ceb-84a2-4b8c8f5945a9",
+      "b3cf9405-2917-4c12-8983-052e1282f0cf"
+    ],
+    "birth_order": "younger_sister",
+    "created_at": 1763161965.629148,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "57ac52d2-29ec-4fdd-9b18-9f90d69d147d",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5949306429449935,
+      "sensitivity": 0.943799915921061,
+      "response_time": 0.9,
+      "false_positive_tolerance": 0.15290007161009356
+    },
+    "fitness": 0.0,
+    "generation": 4,
+    "parent_ids": [
+      "faf494fb-07f2-447f-a3fa-eb429bcc3be7"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161965.6293662,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "b8068c99-3935-4cf6-b40f-1b88a4cde814",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.95,
+      "sensitivity": 0.9679987404768947,
       "response_time": 0.1,
-      "false_positive_tolerance": 0.1
+      "false_positive_tolerance": 0.26576091415041014
+    },
+    "fitness": 0.0,
+    "generation": 11,
+    "parent_ids": [
+      "4ae0d47f-610c-4ff0-920f-919f9f86fde4"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161965.6293738,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "7643f8b9-2094-4d54-8f48-52d97509d83e",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5977253955211728,
+      "sensitivity": 0.9455351925932178,
+      "response_time": 0.1107299451931054,
+      "false_positive_tolerance": 0.34999393835162457
+    },
+    "fitness": 0.0,
+    "generation": 13,
+    "parent_ids": [
+      "1555dfc9-d066-4dcb-af9b-731991fd31ca"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161965.6293833,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "c865e7fd-9c6d-4a93-a8ba-86f8b38de1f0",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.6016510978881041,
+      "sensitivity": 0.9455351925932178,
+      "response_time": 0.1107299451931054,
+      "false_positive_tolerance": 0.34999393835162457
     },
     "fitness": 0.0,
     "generation": 14,
     "parent_ids": [
-      "776d9c9b-90ef-4774-b42e-a8749b9a074f"
+      "7643f8b9-2094-4d54-8f48-52d97509d83e"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763161516.0667624,
+    "created_at": 1763161965.6293912,
     "evaluations": 0
   },
   {
-    "strategy_id": "fabb7123-7fd5-4990-a6ac-8debddae2c8a",
+    "strategy_id": "9cc281cf-e417-45ea-a528-cd1a43889f55",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.7408917182769991,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.1
+      "threshold": 0.6680627051925928,
+      "sensitivity": 0.9455351925932178,
+      "response_time": 0.1107299451931054,
+      "false_positive_tolerance": 0.34999393835162457
+    },
+    "fitness": 0.0,
+    "generation": 15,
+    "parent_ids": [
+      "c865e7fd-9c6d-4a93-a8ba-86f8b38de1f0"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161965.6293993,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "067eea5d-07f2-4935-8823-adcc55fd4253",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5977253955211728,
+      "sensitivity": 0.9455351925932178,
+      "response_time": 0.1107299451931054,
+      "false_positive_tolerance": 0.34999393835162457
     },
     "fitness": 0.0,
     "generation": 14,
     "parent_ids": [
-      "776d9c9b-90ef-4774-b42e-a8749b9a074f"
+      "7643f8b9-2094-4d54-8f48-52d97509d83e"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763161516.0667715,
+    "created_at": 1763161965.629406,
     "evaluations": 0
   },
   {
-    "strategy_id": "24645f2e-1034-4b67-b8d1-b875bfab8893",
+    "strategy_id": "96cba6d7-9010-4ab2-8a7e-9d2534204e53",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.676721705378462,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.10382575589768953
+      "threshold": 0.5949306429449935,
+      "sensitivity": 0.8109549956051083,
+      "response_time": 0.21452087018267268,
+      "false_positive_tolerance": 0.15290007161009356
     },
     "fitness": 0.0,
-    "generation": 17,
+    "generation": 2,
     "parent_ids": [
-      "9e396d44-2128-4ef4-8938-c7172363f20e"
+      "cd2d0dca-3382-417e-be69-a41f66410aca"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763161516.0667834,
+    "created_at": 1763161965.6294131,
     "evaluations": 0
   },
   {
-    "strategy_id": "a1cf1d4e-6e41-49e5-bc9d-3ee6fbaec2c8",
+    "strategy_id": "487a73fc-e0a2-47c5-af42-22a5d93c9217",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.7408917182769991,
+      "threshold": 0.95,
+      "sensitivity": 1.0,
       "response_time": 0.1,
-      "false_positive_tolerance": 0.1
+      "false_positive_tolerance": 0.26576091415041014
+    },
+    "fitness": 0.0,
+    "generation": 11,
+    "parent_ids": [
+      "4ae0d47f-610c-4ff0-920f-919f9f86fde4"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161965.6294208,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "192dd43b-5ebf-4e14-bb76-9a490b99ebb0",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5977253955211728,
+      "sensitivity": 0.9455351925932178,
+      "response_time": 0.1107299451931054,
+      "false_positive_tolerance": 0.34999393835162457
     },
     "fitness": 0.0,
     "generation": 15,
     "parent_ids": [
-      "fabb7123-7fd5-4990-a6ac-8debddae2c8a"
+      "067eea5d-07f2-4935-8823-adcc55fd4253"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763161516.0667896,
+    "created_at": 1763161965.6294265,
     "evaluations": 0
   },
   {
-    "strategy_id": "ede81f9e-76a6-46f5-829f-748aaced6c79",
+    "strategy_id": "3befcfc7-71ba-4368-a8d3-3b39311068ff",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.577973975353633,
-      "sensitivity": 0.7408917182769991,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.1
-    },
-    "fitness": 0.0,
-    "generation": 15,
-    "parent_ids": [
-      "a662b915-515c-46bd-adea-d2f408d3b6bf"
-    ],
-    "uncle_aunt_ids": [],
-    "birth_order": "singleton",
-    "created_at": 1763161516.0667987,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "2b331350-037f-4ec8-93cc-a6cd2a3a4e1d",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.676721705378462,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.10382575589768953
-    },
-    "fitness": 0.0,
-    "generation": 18,
-    "parent_ids": [
-      "24645f2e-1034-4b67-b8d1-b875bfab8893"
-    ],
-    "uncle_aunt_ids": [],
-    "birth_order": "singleton",
-    "created_at": 1763161516.0668044,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "11865a0f-36df-40e0-b19e-64b69b2f9634",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.6066413107851782,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.10382575589768953
-    },
-    "fitness": 0.0,
-    "generation": 19,
-    "parent_ids": [
-      "2b331350-037f-4ec8-93cc-a6cd2a3a4e1d"
-    ],
-    "uncle_aunt_ids": [],
-    "birth_order": "singleton",
-    "created_at": 1763161516.066811,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "7def51c2-0db2-46cb-b040-d6e0f4454fd6",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.676721705378462,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.10382575589768953
-    },
-    "fitness": 0.0,
-    "generation": 19,
-    "parent_ids": [
-      "2b331350-037f-4ec8-93cc-a6cd2a3a4e1d"
-    ],
-    "uncle_aunt_ids": [],
-    "birth_order": "singleton",
-    "created_at": 1763161516.0668185,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "b54408b7-8d5c-499e-9002-0e0f7cc78818",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.7444031152764363,
-      "response_time": 0.10214100544683767,
-      "false_positive_tolerance": 0.18867351108307384
-    },
-    "fitness": 0.0,
-    "generation": 17,
-    "parent_ids": [
-      "9e396d44-2128-4ef4-8938-c7172363f20e"
-    ],
-    "uncle_aunt_ids": [],
-    "birth_order": "singleton",
-    "created_at": 1763161516.0668242,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "f30f3d3c-cda8-4415-8b6f-7d14b2cd0203",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.7408917182769991,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.1
+      "threshold": 0.5977253955211728,
+      "sensitivity": 1.0,
+      "response_time": 0.1107299451931054,
+      "false_positive_tolerance": 0.34999393835162457
     },
     "fitness": 0.0,
     "generation": 16,
     "parent_ids": [
-      "a1cf1d4e-6e41-49e5-bc9d-3ee6fbaec2c8"
+      "192dd43b-5ebf-4e14-bb76-9a490b99ebb0"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763161516.06683,
+    "created_at": 1763161965.6294334,
     "evaluations": 0
   },
   {
-    "strategy_id": "2a106c5a-4191-4bda-a539-4d426f9fc2e6",
+    "strategy_id": "bee53a61-fc87-4b5d-8ae7-a77149d016ff",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.6022516253786849,
-      "response_time": 0.25870770087449,
-      "false_positive_tolerance": 0.10382575589768953
+      "threshold": 0.5977253955211728,
+      "sensitivity": 0.9797272132076389,
+      "response_time": 0.1107299451931054,
+      "false_positive_tolerance": 0.34999393835162457
     },
     "fitness": 0.0,
-    "generation": 20,
+    "generation": 14,
     "parent_ids": [
-      "11865a0f-36df-40e0-b19e-64b69b2f9634"
+      "7643f8b9-2094-4d54-8f48-52d97509d83e"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763161516.0668378,
+    "created_at": 1763161965.6294408,
     "evaluations": 0
   },
   {
-    "strategy_id": "6013a0bb-0e97-464d-b58e-1149cde0bd17",
+    "strategy_id": "4d32d2f2-4086-4a56-882f-533c6ff051e8",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.7408917182769991,
+      "threshold": 0.6016510978881041,
+      "sensitivity": 0.9455351925932178,
       "response_time": 0.1,
-      "false_positive_tolerance": 0.1
+      "false_positive_tolerance": 0.28654313646398133
     },
     "fitness": 0.0,
     "generation": 15,
     "parent_ids": [
-      "fabb7123-7fd5-4990-a6ac-8debddae2c8a"
+      "c865e7fd-9c6d-4a93-a8ba-86f8b38de1f0"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763161516.0668445,
+    "created_at": 1763161965.629449,
     "evaluations": 0
   },
   {
-    "strategy_id": "35f93b34-8a1b-4886-9f79-712790e919f9",
+    "strategy_id": "93166cfb-d521-4716-a872-4119fa87c48a",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.7408917182769991,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.1
-    },
-    "fitness": 0.0,
-    "generation": 15,
-    "parent_ids": [
-      "fabb7123-7fd5-4990-a6ac-8debddae2c8a"
-    ],
-    "uncle_aunt_ids": [],
-    "birth_order": "singleton",
-    "created_at": 1763161516.0668497,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "95099f8b-1f60-4a5b-89e5-6ddfa57510ff",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.676721705378462,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.10382575589768953
-    },
-    "fitness": 0.0,
-    "generation": 18,
-    "parent_ids": [
-      "24645f2e-1034-4b67-b8d1-b875bfab8893"
-    ],
-    "uncle_aunt_ids": [],
-    "birth_order": "singleton",
-    "created_at": 1763161516.0668552,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "0da38858-3455-4dd0-bc3b-5bb6fd1c45c5",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.7408917182769991,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.1
+      "threshold": 0.5977253955211728,
+      "sensitivity": 1.0,
+      "response_time": 0.1107299451931054,
+      "false_positive_tolerance": 0.34999393835162457
     },
     "fitness": 0.0,
     "generation": 17,
     "parent_ids": [
-      "f30f3d3c-cda8-4415-8b6f-7d14b2cd0203"
+      "3befcfc7-71ba-4368-a8d3-3b39311068ff"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763161516.066862,
+    "created_at": 1763161965.6294546,
     "evaluations": 0
   },
   {
-    "strategy_id": "8998d99e-bb5b-44a5-b223-31adf4a012a6",
+    "strategy_id": "a1cfa885-9d06-4e6b-898d-31b075d27a26",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.7408917182769991,
+      "threshold": 0.5977253955211728,
+      "sensitivity": 0.9455351925932178,
+      "response_time": 0.1107299451931054,
+      "false_positive_tolerance": 0.34999393835162457
+    },
+    "fitness": 0.0,
+    "generation": 14,
+    "parent_ids": [
+      "7643f8b9-2094-4d54-8f48-52d97509d83e"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161965.6294606,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "4c266ea9-6454-4ec1-a41a-ca61ef50b44e",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5949306429449935,
+      "sensitivity": 0.943799915921061,
+      "response_time": 0.8676948568797257,
+      "false_positive_tolerance": 0.15290007161009356
+    },
+    "fitness": 0.0,
+    "generation": 4,
+    "parent_ids": [
+      "faf494fb-07f2-447f-a3fa-eb429bcc3be7"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161965.6294672,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "61faf437-28f2-49e1-9d3a-e92df41ff173",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.95,
+      "sensitivity": 0.9679987404768947,
       "response_time": 0.1,
-      "false_positive_tolerance": 0.1
+      "false_positive_tolerance": 0.2554055612423742
     },
     "fitness": 0.0,
-    "generation": 16,
+    "generation": 12,
     "parent_ids": [
-      "6013a0bb-0e97-464d-b58e-1149cde0bd17"
+      "b8068c99-3935-4cf6-b40f-1b88a4cde814"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763161516.066868,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "1a751a98-ad3e-4d4b-8481-29fb1ebe88a5",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.7408917182769991,
-      "response_time": 0.1,
-      "false_positive_tolerance": 0.1
-    },
-    "fitness": 0.0,
-    "generation": 16,
-    "parent_ids": [
-      "6013a0bb-0e97-464d-b58e-1149cde0bd17"
-    ],
-    "uncle_aunt_ids": [],
-    "birth_order": "singleton",
-    "created_at": 1763161516.0668752,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "f8d409af-bc71-42d7-99c5-4c71a785f7f8",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.5,
-      "sensitivity": 0.7408917182769991,
-      "response_time": 0.16891015419845884,
-      "false_positive_tolerance": 0.1
-    },
-    "fitness": 0.0,
-    "generation": 17,
-    "parent_ids": [
-      "1a751a98-ad3e-4d4b-8481-29fb1ebe88a5"
-    ],
-    "uncle_aunt_ids": [],
-    "birth_order": "singleton",
-    "created_at": 1763161516.066884,
+    "created_at": 1763161965.6294746,
     "evaluations": 0
   }
 ]
