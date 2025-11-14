@@ -96,7 +96,7 @@ def demonstrate_phase3():
         if gen == 0 or gen == 4 or gen == 9:
             logger.info(f"      Gen {stats['generation']}: "
                        f"best={stats['best_fitness']:.4f}, "
-                       f"avg={stats['average_fitness']:.4f}")
+                       f"avg={stats['avg_fitness']:.4f}")
     
     best_strategy = evolution.get_best_strategy(StrategyType.DETECTION)
     logger.info(f"\n      ✓ Best evolved strategy (fitness={best_strategy.fitness:.4f}):")
