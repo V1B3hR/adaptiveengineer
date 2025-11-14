@@ -1,410 +1,382 @@
 [
   {
-    "strategy_id": "d3b77973-cfb7-4146-9933-8f9aaab9baa6",
+    "strategy_id": "776d9c9b-90ef-4774-b42e-a8749b9a074f",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.5251771462443569,
-      "sensitivity": 0.8972385906284148,
-      "response_time": 0.41662147232957625,
-      "false_positive_tolerance": 0.2141673994697163
+      "threshold": 0.529489935195426,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.1
     },
-    "fitness": 0.49395924666814417,
-    "generation": 0,
-    "parent_ids": [],
+    "fitness": 0.5685970103796831,
+    "generation": 13,
+    "parent_ids": [
+      "ab51f7f4-551d-48fd-a687-e85743bac876"
+    ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763160877.3114767,
+    "created_at": 1763161516.0610185,
     "evaluations": 1
   },
   {
-    "strategy_id": "9a1178a4-884f-4638-88ca-266e74cce018",
+    "strategy_id": "9e396d44-2128-4ef4-8938-c7172363f20e",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.5018815394128915,
-      "sensitivity": 0.7359654634750659,
-      "response_time": 0.5980463510808444,
-      "false_positive_tolerance": 0.11360818669856876
-    },
-    "fitness": 0.43037998503793995,
-    "generation": 0,
-    "parent_ids": [],
-    "uncle_aunt_ids": [],
-    "birth_order": "singleton",
-    "created_at": 1763160877.3114417,
-    "evaluations": 1
-  },
-  {
-    "strategy_id": "92916d2d-fc46-4ee3-8852-b836e70361d3",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.7306811604818864,
-      "sensitivity": 0.8972385906284148,
-      "response_time": 0.17155168852120353,
-      "false_positive_tolerance": 0.2141673994697163
+      "threshold": 0.5,
+      "sensitivity": 0.7444031152764363,
+      "response_time": 0.10214100544683767,
+      "false_positive_tolerance": 0.18867351108307384
     },
     "fitness": 0.0,
-    "generation": 1,
+    "generation": 16,
     "parent_ids": [
-      "d3b77973-cfb7-4146-9933-8f9aaab9baa6",
-      "4489b792-81ed-4a73-a3d0-d1c9b1ba65d2"
-    ],
-    "uncle_aunt_ids": [
-      "c88e8f3d-c542-48fe-952c-11b386564994",
-      "060a2f02-39c3-4b7e-bd78-f4332a4deb9b"
-    ],
-    "birth_order": "older_brother",
-    "created_at": 1763160877.3142302,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "0ec666b7-6824-4ff5-bc3f-e2a303120585",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.7336957074657638,
-      "sensitivity": 0.7923294284497386,
-      "response_time": 0.7011331824184592,
-      "false_positive_tolerance": 0.42154420838354534
-    },
-    "fitness": 0.0,
-    "generation": 1,
-    "parent_ids": [
-      "d3b77973-cfb7-4146-9933-8f9aaab9baa6",
-      "4489b792-81ed-4a73-a3d0-d1c9b1ba65d2"
-    ],
-    "uncle_aunt_ids": [
-      "c88e8f3d-c542-48fe-952c-11b386564994",
-      "060a2f02-39c3-4b7e-bd78-f4332a4deb9b"
-    ],
-    "birth_order": "younger_sister",
-    "created_at": 1763160877.3142388,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "b3862dae-83b9-43ea-8cb8-8a1cefa4cb88",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.9160759698267106,
-      "sensitivity": 0.6453467984129272,
-      "response_time": 0.454304556325962,
-      "false_positive_tolerance": 0.4915016402756558
-    },
-    "fitness": 0.0,
-    "generation": 1,
-    "parent_ids": [
-      "1e22f3d2-4dca-4d14-ae4d-7c47153475a8",
-      "d3b77973-cfb7-4146-9933-8f9aaab9baa6"
-    ],
-    "uncle_aunt_ids": [
-      "c5bdabff-eca8-49b8-99c7-352038284423",
-      "29cc802e-6007-4390-9080-cce460050b23"
-    ],
-    "birth_order": "younger_sister",
-    "created_at": 1763160877.314288,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "e3638b25-193c-4fa7-a212-f4ec8ec515de",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.8064281961589248,
-      "sensitivity": 0.38706884273103215,
-      "response_time": 0.7648721932448118,
-      "false_positive_tolerance": 0.14777188690569304
-    },
-    "fitness": 0.0,
-    "generation": 1,
-    "parent_ids": [
-      "61d31709-c001-4bcb-b7fc-288142c50574",
-      "bd2a1779-891a-4a4c-befb-40ba2e1d43ba"
-    ],
-    "uncle_aunt_ids": [
-      "c9bc55ae-94cc-45ae-93c2-603d6497a130",
-      "c88e8f3d-c542-48fe-952c-11b386564994"
-    ],
-    "birth_order": "older_brother",
-    "created_at": 1763160877.3143263,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "78ba6afc-f70b-4309-92f2-ae2a17d10cc0",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.7336957074657638,
-      "sensitivity": 0.9090889274085958,
-      "response_time": 0.8583580434733458,
-      "false_positive_tolerance": 0.11286267182979609
-    },
-    "fitness": 0.0,
-    "generation": 1,
-    "parent_ids": [
-      "61d31709-c001-4bcb-b7fc-288142c50574",
-      "bd2a1779-891a-4a4c-befb-40ba2e1d43ba"
-    ],
-    "uncle_aunt_ids": [
-      "c9bc55ae-94cc-45ae-93c2-603d6497a130",
-      "c88e8f3d-c542-48fe-952c-11b386564994"
-    ],
-    "birth_order": "younger_sister",
-    "created_at": 1763160877.3143308,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "ef590372-35d8-40a3-a613-cbf7635b7c46",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.9045629038254276,
-      "sensitivity": 0.8972385906284148,
-      "response_time": 0.41662147232957625,
-      "false_positive_tolerance": 0.2141673994697163
-    },
-    "fitness": 0.0,
-    "generation": 1,
-    "parent_ids": [
-      "61d31709-c001-4bcb-b7fc-288142c50574",
-      "d3b77973-cfb7-4146-9933-8f9aaab9baa6"
-    ],
-    "uncle_aunt_ids": [
-      "2885310c-aa67-45bb-9d24-36d8510fa718",
-      "c9bc55ae-94cc-45ae-93c2-603d6497a130"
-    ],
-    "birth_order": "older_brother",
-    "created_at": 1763160877.3144438,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "2c898351-1159-4cb9-8eec-f293c3bff6d9",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.5103439297905382,
-      "sensitivity": 0.49678889828562645,
-      "response_time": 0.7648721932448118,
-      "false_positive_tolerance": 0.11360818669856876
-    },
-    "fitness": 0.0,
-    "generation": 1,
-    "parent_ids": [
-      "bd2a1779-891a-4a4c-befb-40ba2e1d43ba",
-      "d3b77973-cfb7-4146-9933-8f9aaab9baa6"
-    ],
-    "uncle_aunt_ids": [
-      "9a1178a4-884f-4638-88ca-266e74cce018",
-      "46a1546c-ef90-4eaa-8961-342555f4fff4"
-    ],
-    "birth_order": "older_brother",
-    "created_at": 1763160877.3144767,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "44a61ce2-488c-4d52-9168-d6886dd8e580",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.5103439297905382,
-      "sensitivity": 0.7359654634750659,
-      "response_time": 0.5980463510808444,
-      "false_positive_tolerance": 0.30653370959998905
-    },
-    "fitness": 0.0,
-    "generation": 1,
-    "parent_ids": [
-      "bd2a1779-891a-4a4c-befb-40ba2e1d43ba",
-      "d3b77973-cfb7-4146-9933-8f9aaab9baa6"
-    ],
-    "uncle_aunt_ids": [
-      "9a1178a4-884f-4638-88ca-266e74cce018",
-      "46a1546c-ef90-4eaa-8961-342555f4fff4"
-    ],
-    "birth_order": "younger_sister",
-    "created_at": 1763160877.3144813,
-    "evaluations": 0
-  },
-  {
-    "strategy_id": "cef7b5d2-4b32-408d-823b-ec195df5fffa",
-    "strategy_type": "detection",
-    "parameters": {
-      "threshold": 0.7336957074657638,
-      "sensitivity": 0.7923294284497386,
-      "response_time": 0.7011331824184592,
-      "false_positive_tolerance": 0.42154420838354534
-    },
-    "fitness": 0.0,
-    "generation": 2,
-    "parent_ids": [
-      "0ec666b7-6824-4ff5-bc3f-e2a303120585"
+      "b7ebc44e-bf99-4c6e-b082-79d6b7cad96f"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763160877.3149846,
+    "created_at": 1763161516.0663445,
     "evaluations": 0
   },
   {
-    "strategy_id": "6db7da82-1098-48f1-b2f3-99f15432997d",
+    "strategy_id": "a662b915-515c-46bd-adea-d2f408d3b6bf",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.9160759698267106,
-      "sensitivity": 0.6453467984129272,
-      "response_time": 0.454304556325962,
-      "false_positive_tolerance": 0.45340119208831803
+      "threshold": 0.529489935195426,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.1
     },
     "fitness": 0.0,
-    "generation": 2,
+    "generation": 14,
     "parent_ids": [
-      "b3862dae-83b9-43ea-8cb8-8a1cefa4cb88"
+      "776d9c9b-90ef-4774-b42e-a8749b9a074f"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763160877.315004,
+    "created_at": 1763161516.0667624,
     "evaluations": 0
   },
   {
-    "strategy_id": "99947cb3-95e6-4436-a584-c8cd26c21f59",
+    "strategy_id": "fabb7123-7fd5-4990-a6ac-8debddae2c8a",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.7336957074657638,
-      "sensitivity": 0.8390008267511342,
-      "response_time": 0.7011331824184592,
-      "false_positive_tolerance": 0.42154420838354534
+      "threshold": 0.5,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.1
     },
     "fitness": 0.0,
-    "generation": 3,
+    "generation": 14,
     "parent_ids": [
-      "cef7b5d2-4b32-408d-823b-ec195df5fffa"
+      "776d9c9b-90ef-4774-b42e-a8749b9a074f"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763160877.315015,
+    "created_at": 1763161516.0667715,
     "evaluations": 0
   },
   {
-    "strategy_id": "7552ec57-40a5-4590-8f4d-70c5103fff47",
+    "strategy_id": "24645f2e-1034-4b67-b8d1-b875bfab8893",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.5103439297905382,
-      "sensitivity": 0.7359654634750659,
-      "response_time": 0.5980463510808444,
-      "false_positive_tolerance": 0.30653370959998905
+      "threshold": 0.5,
+      "sensitivity": 0.676721705378462,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.10382575589768953
     },
     "fitness": 0.0,
-    "generation": 2,
+    "generation": 17,
     "parent_ids": [
-      "44a61ce2-488c-4d52-9168-d6886dd8e580"
+      "9e396d44-2128-4ef4-8938-c7172363f20e"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763160877.3150218,
+    "created_at": 1763161516.0667834,
     "evaluations": 0
   },
   {
-    "strategy_id": "c4b20639-5a82-4a53-b014-3735df31b1d1",
+    "strategy_id": "a1cf1d4e-6e41-49e5-bc9d-3ee6fbaec2c8",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.7336957074657638,
-      "sensitivity": 0.8390008267511342,
-      "response_time": 0.7011331824184592,
-      "false_positive_tolerance": 0.45101421549813475
+      "threshold": 0.5,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.1
     },
     "fitness": 0.0,
-    "generation": 4,
+    "generation": 15,
     "parent_ids": [
-      "99947cb3-95e6-4436-a584-c8cd26c21f59"
+      "fabb7123-7fd5-4990-a6ac-8debddae2c8a"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763160877.315032,
+    "created_at": 1763161516.0667896,
     "evaluations": 0
   },
   {
-    "strategy_id": "a7b5d64e-0961-4d0e-af57-0986216e693e",
+    "strategy_id": "ede81f9e-76a6-46f5-829f-748aaced6c79",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.7336957074657638,
-      "sensitivity": 0.8390008267511342,
-      "response_time": 0.7011331824184592,
-      "false_positive_tolerance": 0.42154420838354534
+      "threshold": 0.577973975353633,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.1
     },
     "fitness": 0.0,
-    "generation": 4,
+    "generation": 15,
     "parent_ids": [
-      "99947cb3-95e6-4436-a584-c8cd26c21f59"
+      "a662b915-515c-46bd-adea-d2f408d3b6bf"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763160877.3150384,
+    "created_at": 1763161516.0667987,
     "evaluations": 0
   },
   {
-    "strategy_id": "a4d2794f-1a53-454f-852c-5cbea91aecdf",
+    "strategy_id": "2b331350-037f-4ec8-93cc-a6cd2a3a4e1d",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.9045629038254276,
-      "sensitivity": 0.8972385906284148,
-      "response_time": 0.41662147232957625,
-      "false_positive_tolerance": 0.2141673994697163
+      "threshold": 0.5,
+      "sensitivity": 0.676721705378462,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.10382575589768953
     },
     "fitness": 0.0,
-    "generation": 2,
+    "generation": 18,
     "parent_ids": [
-      "ef590372-35d8-40a3-a613-cbf7635b7c46"
+      "24645f2e-1034-4b67-b8d1-b875bfab8893"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763160877.3150444,
+    "created_at": 1763161516.0668044,
     "evaluations": 0
   },
   {
-    "strategy_id": "bf865f89-397c-432a-b136-f8bd545dce2d",
+    "strategy_id": "11865a0f-36df-40e0-b19e-64b69b2f9634",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.7336957074657638,
-      "sensitivity": 0.9090889274085958,
-      "response_time": 0.8583580434733458,
-      "false_positive_tolerance": 0.11286267182979609
+      "threshold": 0.5,
+      "sensitivity": 0.6066413107851782,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.10382575589768953
     },
     "fitness": 0.0,
-    "generation": 2,
+    "generation": 19,
     "parent_ids": [
-      "78ba6afc-f70b-4309-92f2-ae2a17d10cc0"
+      "2b331350-037f-4ec8-93cc-a6cd2a3a4e1d"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763160877.3150508,
+    "created_at": 1763161516.066811,
     "evaluations": 0
   },
   {
-    "strategy_id": "0f69000c-465a-4aea-8646-5962ab84a9c6",
+    "strategy_id": "7def51c2-0db2-46cb-b040-d6e0f4454fd6",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.8064281961589248,
-      "sensitivity": 0.38706884273103215,
-      "response_time": 0.7648721932448118,
-      "false_positive_tolerance": 0.14777188690569304
+      "threshold": 0.5,
+      "sensitivity": 0.676721705378462,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.10382575589768953
     },
     "fitness": 0.0,
-    "generation": 2,
+    "generation": 19,
     "parent_ids": [
-      "e3638b25-193c-4fa7-a212-f4ec8ec515de"
+      "2b331350-037f-4ec8-93cc-a6cd2a3a4e1d"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763160877.3150568,
+    "created_at": 1763161516.0668185,
     "evaluations": 0
   },
   {
-    "strategy_id": "91e485eb-6622-4be8-acf5-da374b9d88a9",
+    "strategy_id": "b54408b7-8d5c-499e-9002-0e0f7cc78818",
     "strategy_type": "detection",
     "parameters": {
-      "threshold": 0.7336957074657638,
-      "sensitivity": 0.7923294284497386,
-      "response_time": 0.7011331824184592,
-      "false_positive_tolerance": 0.42154420838354534
+      "threshold": 0.5,
+      "sensitivity": 0.7444031152764363,
+      "response_time": 0.10214100544683767,
+      "false_positive_tolerance": 0.18867351108307384
     },
     "fitness": 0.0,
-    "generation": 3,
+    "generation": 17,
     "parent_ids": [
-      "cef7b5d2-4b32-408d-823b-ec195df5fffa"
+      "9e396d44-2128-4ef4-8938-c7172363f20e"
     ],
     "uncle_aunt_ids": [],
     "birth_order": "singleton",
-    "created_at": 1763160877.3150628,
+    "created_at": 1763161516.0668242,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "f30f3d3c-cda8-4415-8b6f-7d14b2cd0203",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.1
+    },
+    "fitness": 0.0,
+    "generation": 16,
+    "parent_ids": [
+      "a1cf1d4e-6e41-49e5-bc9d-3ee6fbaec2c8"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161516.06683,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "2a106c5a-4191-4bda-a539-4d426f9fc2e6",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5,
+      "sensitivity": 0.6022516253786849,
+      "response_time": 0.25870770087449,
+      "false_positive_tolerance": 0.10382575589768953
+    },
+    "fitness": 0.0,
+    "generation": 20,
+    "parent_ids": [
+      "11865a0f-36df-40e0-b19e-64b69b2f9634"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161516.0668378,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "6013a0bb-0e97-464d-b58e-1149cde0bd17",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.1
+    },
+    "fitness": 0.0,
+    "generation": 15,
+    "parent_ids": [
+      "fabb7123-7fd5-4990-a6ac-8debddae2c8a"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161516.0668445,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "35f93b34-8a1b-4886-9f79-712790e919f9",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.1
+    },
+    "fitness": 0.0,
+    "generation": 15,
+    "parent_ids": [
+      "fabb7123-7fd5-4990-a6ac-8debddae2c8a"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161516.0668497,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "95099f8b-1f60-4a5b-89e5-6ddfa57510ff",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5,
+      "sensitivity": 0.676721705378462,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.10382575589768953
+    },
+    "fitness": 0.0,
+    "generation": 18,
+    "parent_ids": [
+      "24645f2e-1034-4b67-b8d1-b875bfab8893"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161516.0668552,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "0da38858-3455-4dd0-bc3b-5bb6fd1c45c5",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.1
+    },
+    "fitness": 0.0,
+    "generation": 17,
+    "parent_ids": [
+      "f30f3d3c-cda8-4415-8b6f-7d14b2cd0203"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161516.066862,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "8998d99e-bb5b-44a5-b223-31adf4a012a6",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.1
+    },
+    "fitness": 0.0,
+    "generation": 16,
+    "parent_ids": [
+      "6013a0bb-0e97-464d-b58e-1149cde0bd17"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161516.066868,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "1a751a98-ad3e-4d4b-8481-29fb1ebe88a5",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.1,
+      "false_positive_tolerance": 0.1
+    },
+    "fitness": 0.0,
+    "generation": 16,
+    "parent_ids": [
+      "6013a0bb-0e97-464d-b58e-1149cde0bd17"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161516.0668752,
+    "evaluations": 0
+  },
+  {
+    "strategy_id": "f8d409af-bc71-42d7-99c5-4c71a785f7f8",
+    "strategy_type": "detection",
+    "parameters": {
+      "threshold": 0.5,
+      "sensitivity": 0.7408917182769991,
+      "response_time": 0.16891015419845884,
+      "false_positive_tolerance": 0.1
+    },
+    "fitness": 0.0,
+    "generation": 17,
+    "parent_ids": [
+      "1a751a98-ad3e-4d4b-8481-29fb1ebe88a5"
+    ],
+    "uncle_aunt_ids": [],
+    "birth_order": "singleton",
+    "created_at": 1763161516.066884,
     "evaluations": 0
   }
 ]

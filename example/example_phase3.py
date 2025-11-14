@@ -410,12 +410,14 @@ def demonstrate_phase3():
     logger.info("   " + "-" * 66)
     
     # Evolution stats
-    evo_stats = evolution.get_population_stats(StrategyType.DETECTION)
+    best_strat = evolution.get_best_strategy(StrategyType.DETECTION)
+    population = evolution.get_population(StrategyType.DETECTION)
     logger.info("\n   Evolutionary Learning:")
-    logger.info(f"      Generation: {evo_stats['generation']}")
-    logger.info(f"      Best fitness: {evo_stats['best_fitness']:.4f}")
-    logger.info(f"      Average fitness: {evo_stats['average_fitness']:.4f}")
-    logger.info(f"      Population size: {evo_stats['population_size']}")
+    logger.info(f"      Generation: {evolution.generation}")
+    logger.info(f"      Best fitness: {best_strat.fitness:.4f}" if best_strat else "      Best fitness: N/A")
+    avg_fitness = sum(s.fitness for s in population) / len(population) if population else 0
+    logger.info(f"      Average fitness: {avg_fitness:.4f}")
+    logger.info(f"      Population size: {len(population)}")
     
     # Adaptive learning stats
     learning_stats = learning.get_all_statistics()
@@ -461,6 +463,261 @@ def demonstrate_phase3():
     logger.info("       - Byzantine-resilient aggregation (weighted median)")
     logger.info("       - Consensus for root cause, attack validation, responses")
     logger.info("       - Tolerate up to 33% malicious nodes in voting")
+    
+    # ========================================================================
+    # 5. NEW: Digital Sensory Cortex
+    # ========================================================================
+    logger.info("\n5. Demonstrating Digital Sensory Cortex...")
+    logger.info("   " + "-" * 66)
+    
+    from core.sensory_cortex import SensoryCortex, AnomalyLevel
+    
+    logger.info("\n   5.1 Deploy specialized sensor agents...")
+    sensory_cortex = SensoryCortex()
+    sensory_cortex.deploy_sensors(
+        sight_count=2,    # Pattern & topology agents
+        hearing_count=2,  # Signal & broadcast agents
+        smell_count=2,    # Ambient & pheromone agents
+        taste_count=1,    # Data inspection agents (expensive)
+        touch_count=3     # Health probe agents
+    )
+    logger.info(f"      ✓ Deployed {sensory_cortex.get_total_sensor_count()} sensors")
+    
+    logger.info("\n   5.2 Simulate environment sensing...")
+    
+    # Create mock environment
+    class MockEnvironment:
+        def get_node(self, node_id):
+            return {
+                'attributes': {
+                    'cpu_load': 0.85,
+                    'memory_usage': 0.90,
+                    'health_status': 'DEGRADED',
+                    'threat_score': 0.75
+                }
+            }
+        def get_edges(self, node_id):
+            return [
+                {'attributes': {'load': 0.8}},
+                {'attributes': {'load': 0.9}},
+                {'attributes': {'load': 0.7}}
+            ]
+        def get_node_signals(self, node_id):
+            return [
+                {'priority': 0.9, 'type': 'threat'},
+                {'priority': 0.85, 'type': 'distress'}
+            ]
+        def get_node_pheromones(self, node_id):
+            return [
+                {'type': 'threat', 'strength': 0.8, 'signature': 'malware_x'}
+            ]
+    
+    env = MockEnvironment()
+    inputs = sensory_cortex.sense_node(env, "node_001")
+    
+    logger.info(f"      ✓ Detected {len(inputs)} anomalies via multi-modal sensing:")
+    for inp in inputs:
+        logger.info(f"        - {inp.sense_type.value}: {inp.anomaly_level.value} "
+                   f"(confidence: {inp.confidence:.2f})")
+    
+    stats = sensory_cortex.get_statistics()
+    logger.info(f"\n      Sensory Statistics:")
+    logger.info(f"        - Sight detections: {stats['sight_detections']}")
+    logger.info(f"        - Hearing detections: {stats['hearing_detections']}")
+    logger.info(f"        - Smell detections: {stats['smell_detections']}")
+    logger.info(f"        - Taste detections: {stats['taste_detections']}")
+    logger.info(f"        - Touch detections: {stats['touch_detections']}")
+    
+    # ========================================================================
+    # 6. NEW: Knowledge Graph & Adaptive Memory
+    # ========================================================================
+    logger.info("\n6. Demonstrating Knowledge Graph & Adaptive Memory...")
+    logger.info("   " + "-" * 66)
+    
+    from core.knowledge_graph import KnowledgeGraph, OutcomeType
+    
+    logger.info("\n   6.1 Initialize knowledge graph...")
+    kg = KnowledgeGraph(learning_rate=0.15, max_experiences=10000)
+    logger.info("      ✓ Knowledge graph initialized")
+    
+    logger.info("\n   6.2 Register solution strategies...")
+    strategies = [
+        ('Isolate and Scan', ['isolate', 'scan', 'remove'], 1.5),
+        ('Restart Services', ['stop', 'restore', 'restart'], 2.0),
+        ('Traffic Reroute', ['reroute', 'monitor'], 1.0)
+    ]
+    
+    for name, actions, cost in strategies:
+        kg.register_strategy(name, f"Strategy: {name}", actions, cost)
+    logger.info(f"      ✓ Registered {len(strategies)} strategies")
+    
+    logger.info("\n   6.3 Simulate learning from incidents...")
+    # Simulate 10 incidents with varied outcomes
+    incidents = [
+        ('High CPU Load', {'cpu': 0.9}, 'Restart Services', OutcomeType.SUCCESS, 5.0),
+        ('Network Congestion', {'network': 0.8}, 'Traffic Reroute', OutcomeType.SUCCESS, 3.0),
+        ('Malware Detected', {'threat': 0.9}, 'Isolate and Scan', OutcomeType.SUCCESS, 8.0),
+        ('High CPU Load', {'cpu': 0.85}, 'Traffic Reroute', OutcomeType.FAILURE, 10.0),
+        ('Network Congestion', {'network': 0.9}, 'Traffic Reroute', OutcomeType.SUCCESS, 2.5),
+        ('Malware Detected', {'threat': 0.95}, 'Isolate and Scan', OutcomeType.PARTIAL_SUCCESS, 12.0),
+        ('High CPU Load', {'cpu': 0.92}, 'Restart Services', OutcomeType.SUCCESS, 4.5),
+        ('Memory Leak', {'memory': 0.88}, 'Restart Services', OutcomeType.SUCCESS, 6.0),
+        ('DDoS Attack', {'network': 0.95, 'threat': 0.8}, 'Traffic Reroute', OutcomeType.SUCCESS, 7.0),
+        ('High CPU Load', {'cpu': 0.88}, 'Isolate and Scan', OutcomeType.FAILURE, 15.0)
+    ]
+    
+    for desc, features, strategy, outcome, time_taken in incidents:
+        pattern_id = kg.recognize_pattern(desc, features, severity=max(features.values()))
+        strategies_dict = {s.name: s.strategy_id for s in kg.solution_strategies.values()}
+        strategy_id = strategies_dict.get(strategy)
+        if strategy_id:
+            # Create mock state for RL
+            state = {'features': features}
+            next_state = {'features': features, 'resolved': outcome == OutcomeType.SUCCESS}
+            kg.record_incident(pattern_id, strategy_id, outcome, time_taken, state, next_state)
+    
+    kg_stats = kg.get_statistics()
+    logger.info(f"      ✓ Learned from {kg_stats['total_incidents']} incidents:")
+    logger.info(f"        - Success rate: {kg_stats['success_rate']:.2%}")
+    logger.info(f"        - Patterns learned: {kg_stats['total_patterns']}")
+    logger.info(f"        - Knowledge edges: {kg_stats['total_edges']}")
+    logger.info(f"        - RL experiences: {kg_stats['experiences_recorded']}")
+    logger.info(f"        - Root cause analyses: {kg_stats['root_cause_analyses']}")
+    
+    logger.info("\n   6.4 Query best strategies...")
+    for pattern in list(kg.problem_patterns.values())[:3]:
+        best = kg.get_best_strategy(pattern.pattern_id, top_k=1)
+        if best:
+            strat_id, weight = best[0]
+            strat = kg.solution_strategies.get(strat_id)
+            logger.info(f"      - '{pattern.description}' → '{strat.name}' (weight: {weight:.2f})")
+    
+    # ========================================================================
+    # 7. NEW: Adaptive Immune System
+    # ========================================================================
+    logger.info("\n7. Demonstrating Adaptive Immune System...")
+    logger.info("   " + "-" * 66)
+    
+    from core.immune_system import AdaptiveImmuneSystem, ThreatLevel
+    
+    logger.info("\n   7.1 Initialize immune system...")
+    immune_system = AdaptiveImmuneSystem(kg)
+    immune_system.initialize_agents(
+        neutrophil_count=5,      # Fast responders
+        macrophage_count=3,       # Specialist healers
+        reinforcement_squads=2    # Reinforcement squads
+    )
+    logger.info("      ✓ Immune system initialized")
+    logger.info(f"        - Neutrophils: 5")
+    logger.info(f"        - Macrophages: 3")
+    logger.info(f"        - Reinforcement squads: 2")
+    
+    logger.info("\n   7.2 Detect and respond to threats...")
+    
+    # Detect a threat
+    threat_features = {'type': 'malware', 'signature': 'trojan_xyz', 'severity': 0.85}
+    threat_sig = immune_system.detect_threat(threat_features, 'malware', 0.85)
+    logger.info(f"      ✓ Threat detected: {threat_sig}")
+    
+    # Initiate immune response
+    response_id = immune_system.initiate_response(threat_sig, 'node_005', ThreatLevel.HIGH)
+    logger.info(f"      ✓ Immune response initiated: {response_id}")
+    
+    # Escalate to repair
+    pattern_id = kg.recognize_pattern('Malware Detected', threat_features, 0.85)
+    immune_system.escalate_to_repair(response_id, pattern_id)
+    logger.info(f"      ✓ Escalated to repair with macrophage")
+    
+    # Complete response
+    immune_system.complete_response(response_id, success=True)
+    logger.info(f"      ✓ Response completed successfully")
+    
+    # Deploy reinforcements
+    squad_id = immune_system.deploy_reinforcements('node_007', {
+        'cpu_load': 0.92,
+        'memory_usage': 0.88,
+        'network_load': 0.75
+    })
+    logger.info(f"      ✓ Reinforcement squad deployed: {squad_id}")
+    
+    immune_stats = immune_system.get_statistics()
+    logger.info(f"\n      Immune System Statistics:")
+    logger.info(f"        - Total responses: {immune_stats['total_responses']}")
+    logger.info(f"        - Success rate: {immune_stats['success_rate']:.2%}")
+    logger.info(f"        - Memory cells: {immune_stats['memory_cells']}")
+    logger.info(f"        - Known threats: {immune_stats['known_threats']}")
+    
+    # ========================================================================
+    # 8. NEW: Collective Cognition Engine
+    # ========================================================================
+    logger.info("\n8. Demonstrating Collective Cognition Engine...")
+    logger.info("   " + "-" * 66)
+    
+    from core.collective_cognition import CollectiveCognitionEngine
+    
+    logger.info("\n   8.1 Initialize cognition engine...")
+    cognition = CollectiveCognitionEngine(kg, evolution)
+    logger.info("      ✓ Cognition engine initialized")
+    
+    logger.info("\n   8.2 Perform meta-learning analysis...")
+    insights = cognition.perform_meta_learning()
+    logger.info(f"      ✓ Generated {len(insights)} cognitive insights:")
+    
+    for insight in insights[:5]:  # Show top 5
+        logger.info(f"        - [{insight.insight_type.value}] {insight.description}")
+        logger.info(f"          Confidence: {insight.confidence:.2f}, Priority: {insight.priority:.2f}")
+    
+    logger.info("\n   8.3 Synthesized hybrid strategies...")
+    hybrid_strategies = cognition.get_hybrid_strategies()
+    logger.info(f"      ✓ Created {len(hybrid_strategies)} hybrid strategies:")
+    for hybrid in hybrid_strategies[:3]:
+        logger.info(f"        - {hybrid.name}")
+        logger.info(f"          Effectiveness: {hybrid.estimated_effectiveness:.2f}, "
+                   f"Novelty: {hybrid.novelty_score:.2f}")
+    
+    cog_stats = cognition.get_statistics()
+    logger.info(f"\n      Cognition Statistics:")
+    logger.info(f"        - Analyses performed: {cog_stats['analysis_count']}")
+    logger.info(f"        - Insights generated: {cog_stats['insights_generated']}")
+    logger.info(f"        - Hybrid strategies: {cog_stats['strategies_synthesized']}")
+    logger.info(f"        - Pattern clusters: {cog_stats['pattern_clusters']}")
+    
+    logger.info("\n" + "=" * 70)
+    logger.info("PHASE 3 SUMMARY")
+    logger.info("=" * 70)
+    
+    logger.info("\n✓ Core Phase 3 Features (Existing):")
+    logger.info("   • Evolutionary Learning:")
+    logger.info("       - Genetic algorithms optimize detection/mitigation strategies")
+    logger.info("       - Strategies evolve through reproduction, variation, selection")
+    logger.info("   • Adaptive Learning:")
+    logger.info("       - Learn normal behavior and auto-tune thresholds")
+    logger.info("       - Statistical anomaly detection")
+    logger.info("   • Trust Network & Byzantine-Resilient Consensus:")
+    logger.info("       - Detect compromised nodes")
+    logger.info("       - Byzantine-resilient aggregation")
+    logger.info("       - Tolerate up to 33% malicious nodes")
+    
+    logger.info("\n✓ NEW Phase 3 Features (Collective Sentience):")
+    logger.info("   • Digital Sensory Cortex:")
+    logger.info("       - Multi-modal sensing (sight, hearing, smell, taste, touch)")
+    logger.info("       - Specialized sensor agents for different perspectives")
+    logger.info("       - Rich anomaly detection with confidence levels")
+    logger.info("   • Adaptive Memory & Learning Core (Knowledge Graph):")
+    logger.info("       - Learn from both successes AND failures")
+    logger.info("       - Weighted edges encode strategy effectiveness")
+    logger.info("       - Root cause analysis for failures")
+    logger.info("       - RL experience buffer for training")
+    logger.info("   • Adaptive Immune Response:")
+    logger.info("       - Neutrophils for fast containment")
+    logger.info("       - Macrophages for specialized repair")
+    logger.info("       - Reinforcement squads for sustained stress")
+    logger.info("       - Memory cells (B-cells) for threat recognition")
+    logger.info("   • Collective Cognition Engine:")
+    logger.info("       - Meta-learning across hundreds of incidents")
+    logger.info("       - Pattern clustering and failure correlation")
+    logger.info("       - Creative synthesis of hybrid strategies")
+    logger.info("       - Novel threat detection and optimization")
     
     logger.info("\n" + "=" * 70 + "\n")
 
