@@ -44,6 +44,13 @@ The **adaptiveengineer** module provides:
 - **Swarm Defense**: Biological-inspired coordination with "digital white blood cells"
 - **Evolving Adversaries**: Adaptive threat simulation that learns and evolves
 
+### The Sentient Polity & Governance (Phase 4 - NEW)
+- **Reputation Ledger**: Byzantine-resilient reputation with 4 meritocratic tiers
+- **Contract Net Protocol**: Market-based collaborative tasking and negotiation
+- **Council of Professors**: Governance layer with 3 specialized oversight agents
+- **Constitutional Framework**: Three immutable laws for ethical self-regulation
+- **Real-World Bridge**: Safe integration with Ansible, AWS, Kubernetes, and more
+
 ### Advanced Features & Large-Scale (Phase 5)
 - **Openness Engine**: Adaptation to unpredictable, open-ended environments
 - **Human-in-the-Loop**: Ethics, privacy, compliance with approval workflows
