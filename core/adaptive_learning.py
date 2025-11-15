@@ -10,6 +10,7 @@ import logging
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Any, Deque, Dict, Tuple, Optional
+from enum import Enum
 
 logger = logging.getLogger(__name__)
 
