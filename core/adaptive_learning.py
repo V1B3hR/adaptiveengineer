@@ -1,8 +1,7 @@
 """
 Adaptive learning system for auto-tuning thresholds and learning normal behavior.
-
-This module provides mechanisms to learn "normal" service, traffic, and error
-behavior patterns and automatically tune detection thresholds based on observed data.
+Updated with Emotional Intelligence: Frustration, Curiosity, and Aggression modes
+to support Symbiotic Evolution.
 """
 
 import time
@@ -11,6 +10,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import Any, Deque, Dict, Tuple, Optional
 from enum import Enum
+import math
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +22,7 @@ class BehaviorType(str, Enum):
     ERROR = "error"
     RESOURCE = "resource"
     PERFORMANCE = "performance"
+    SYMBIOTIC_TEST = "symbiotic_test"
 
 
 @dataclass
@@ -32,19 +33,17 @@ class Observation:
     behavior_type: BehaviorType
     metadata: Dict[str, Any] = field(default_factory=dict)
 
+
 @dataclass
 class BehaviorProfile:
     """
-    Statistical profile of normal behavior.
+    Statistical profile of normal behavior with Emotional Intelligence.
 
-    Improvements:
-    - Adds 'motivation' (float 0..1) which biases learning speed and threshold tightness.
-    - Adds 'joy' (float 0..1) which increases when anomalies are resolved.
-    - Uses standard Welford algorithm internally (mean, m2 -> variance).
-    - Keeps an exponential moving average (ema) updated with an effective learning rate
-      scaled by motivation to give an alternative, motivation-sensitive estimate.
-    - Persistence via to_dict()/from_dict().
-    - resolve_anomaly() to be called when an anomaly is handled/resolved to increase joy/motivation.
+    Now includes:
+    - Motivation & Joy (Legacy)
+    - Calmness, Curiosity, Frustration (New)
+    - Aggressive Mode handling
+    - Novelty detection
     """
 
     behavior_type: Any
@@ -53,113 +52,115 @@ class BehaviorProfile:
     # Running statistics (Welford)
     mean: float = 0.0
     m2: float = 0.0  # sum of squares of differences from the current mean
-    # derived variance = m2 / (n-1) when n > 1
-
-    # Optional EMA (motivation will bias this)
     ema: Optional[float] = None
 
     min_value: float = float('inf')
     max_value: float = float('-inf')
 
-    # Adaptive thresholds (in [0,1])
+    # Adaptive thresholds
     lower_threshold: float = 0.0
     upper_threshold: float = 1.0
 
     # Learning parameters
-    learning_rate: float = 0.01  # base for EMA updates
+    learning_rate: float = 0.01
     adaptation_count: int = 0
     last_update: float = field(default_factory=time.time)
 
-    # Motivation & Joy
-    motivation: float = 0.5  # 0.0 (low) .. 1.0 (high)
-    joy: float = 0.5         # 0.0 .. 1.0, increases when anomalies are resolved
-
-    # Sensitivity tuning (how strongly motivation affects learning & thresholds)
-    motivation_sensitivity: float = 0.5   # affects learning_rate scaling
-    threshold_sensitivity: float = 0.5    # affects threshold tightening/loosening
-
-    # Behavior tuning for resolve/decay
-    joy_gain: float = 0.05          # base gain to joy per resolved anomaly (scaled)
+    # --- EMOTIONAL STATE ---
+    
+    # Core drives (0.0 - 1.0)
+    motivation: float = 0.5
+    joy: float = 0.5
+    
+    # Personality Traits (DNA from Evolution)
+    calmness: float = 0.5          # 1.0 = Zen master, 0.0 = Volatile
+    curiosity_drive: float = 0.1   # How much joy from novelty
+    motivation_memory: float = 0.95 # Retention of motivation over time
+    
+    # Dynamic Emotional State
+    frustration: float = 0.0       # Accumulates with unresolved/severe anomalies
+    aggressive_mode: bool = False  # Triggered by high frustration
+    
+    # Sensitivities
+    motivation_sensitivity: float = 0.5
+    threshold_sensitivity: float = 0.5
+    joy_gain: float = 0.05
     motivation_gain_on_resolve: float = 0.02
-    motivation_decay_per_sec: float = 1e-4  # small continuous decay
+    
+    # Decay factors
+    motivation_decay_per_sec: float = 1e-4
     joy_decay_per_sec: float = 1e-4
+
+    # Internal metrics for behavior tracking
+    _resolve_ema: float = 0.0  # Tracks rate of resolutions (spam protection)
 
     def _clamp01(self, v: float) -> float:
         return max(0.0, min(1.0, v))
 
     def _effective_learning_rate(self) -> float:
-        """
-        Scale base learning_rate by motivation.
-        motivation > 0.5 -> increase effective lr (faster adaptation)
-        motivation < 0.5 -> decrease effective lr (slower adaptation)
-        """
+        # Aggressive mode forces high learning rate
+        if self.aggressive_mode:
+            return min(1.0, self.learning_rate * 2.0)
+            
         multiplier = 1.0 + (self.motivation - 0.5) * 2.0 * self.motivation_sensitivity
         eff = self.learning_rate * multiplier
-        # keep within reasonable bounds
         return max(1e-6, min(1.0, eff))
 
     def _effective_num_std_devs(self, base_num_std_devs: float) -> float:
-        """
-        Reduce the number of std devs (tighten thresholds) when motivation is high.
-        motivation=1 => tighter thresholds, motivation=0 => looser thresholds.
-        """
-        # map motivation in [0,1] to factor in [1 + threshold_sensitivity, 1 - threshold_sensitivity]
+        # Aggressive mode tightens thresholds significantly
+        if self.aggressive_mode:
+            return max(0.1, base_num_std_devs * 0.5)
+            
         adjustment = (self.motivation - 0.5) * 2.0 * self.threshold_sensitivity
-        # negative adjustment -> larger num_std_devs (looser); positive -> smaller (tighter)
         eff = base_num_std_devs * (1.0 - adjustment)
-        # Avoid non-sensical very small or negative numbers
         return max(0.1, eff)
 
     def _decay_motivation_and_joy(self) -> None:
-        """Apply small decay to motivation and joy based on elapsed time since last_update."""
         now = time.time()
         elapsed = max(0.0, now - self.last_update)
         if elapsed <= 0:
             return
-        # exponential-like discrete decay
-        self.motivation = self._clamp01(self.motivation * (1.0 - self.motivation_decay_per_sec) ** elapsed)
+            
+        # Use motivation_memory if available, else default decay
+        decay_rate = self.motivation_decay_per_sec
+        
+        self.motivation = self._clamp01(self.motivation * (1.0 - decay_rate) ** elapsed)
         self.joy = self._clamp01(self.joy * (1.0 - self.joy_decay_per_sec) ** elapsed)
-        # update last_update here only for decay bookkeeping, other methods will set it again
+        
+        # Frustration decays over time if not fed (calmness speeds this up)
+        frustration_decay = 0.05 * (1.0 + self.calmness) 
+        self.frustration = max(0.0, self.frustration - (frustration_decay * elapsed))
+        
+        # Exit aggressive mode if frustration drops
+        if self.aggressive_mode and self.frustration < 0.5:
+            self.aggressive_mode = False
+            
         self.last_update = now
 
     def update(self, observation: Any) -> None:
-        """
-        Update profile with a new observation.
-
-        Expects observation to have a numeric .value attribute (or be numeric itself).
-        Uses Welford's algorithm for numerically stable incremental updates and also
-        updates an EMA that is biased by 'motivation'.
-        """
-        # normalize observation value extraction
         value = observation.value if hasattr(observation, "value") else float(observation)
-
-        # decay first so motivation/joy remain time-aware
         self._decay_motivation_and_joy()
-
-        # store observation
         self.observations.append(observation)
 
-        # update min/max
         self.min_value = min(self.min_value, value)
         self.max_value = max(self.max_value, value)
 
-        # Welford update
         n = self.adaptation_count + 1
         delta = value - self.mean
         self.mean += delta / n
         delta2 = value - self.mean
         self.m2 += delta * delta2
-
-        # update variance derived if needed (kept via getter)
         self.adaptation_count = n
         self.last_update = time.time()
 
-        # update EMA using motivation-scaled learning rate
         eff_lr = self._effective_learning_rate()
         if self.ema is None:
             self.ema = value
         else:
             self.ema = eff_lr * value + (1.0 - eff_lr) * self.ema
+            
+        # Decay resolve rate tracking (part of spam protection)
+        self._resolve_ema = self._resolve_ema * 0.95
 
     @property
     def variance(self) -> float:
@@ -167,30 +168,23 @@ class BehaviorProfile:
             return 0.0
         return self.m2 / (self.adaptation_count - 1)
 
-    def auto_tune_thresholds(
-        self,
-        num_std_devs: float = 2.0,
-        min_observations: int = 10
-    ) -> Tuple[float, float]:
-        """
-        Automatically tune thresholds based on observed behavior and current motivation.
+    @property
+    def std_dev(self) -> float:
+        return self.variance ** 0.5
 
-        Higher motivation will generally tighten thresholds (smaller number of std devs).
-        """
+    def auto_tune_thresholds(self, num_std_devs: float = 2.0, min_observations: int = 10) -> Tuple[float, float]:
         if self.adaptation_count < min_observations:
             return self.lower_threshold, self.upper_threshold
 
-        std_dev = self.variance ** 0.5
+        std = self.std_dev
         eff_num = self._effective_num_std_devs(num_std_devs)
 
-        lower = self.mean - eff_num * std_dev
-        upper = self.mean + eff_num * std_dev
+        lower = self.mean - eff_num * std
+        upper = self.mean + eff_num * std
 
-        # clamp thresholds into [0,1] domain if appropriate for your data; keep numeric safety
         self.lower_threshold = max(0.0, min(1.0, lower))
         self.upper_threshold = max(0.0, min(1.0, upper))
 
-        # ensure lower <= upper
         if self.lower_threshold > self.upper_threshold:
             mid = (self.lower_threshold + self.upper_threshold) / 2.0
             self.lower_threshold = mid
@@ -199,49 +193,78 @@ class BehaviorProfile:
         return self.lower_threshold, self.upper_threshold
 
     def is_anomaly(self, value: float, sensitivity: float = 1.0) -> Tuple[bool, float]:
-        """
-        Check if a value is anomalous.
-
-        sensitivity: multiplier for detection sensitivity (higher -> more sensitive).
-        Returns (is_anomaly, anomaly_score) where anomaly_score is 0..1.
-        """
         if self.adaptation_count < 2:
             return False, 0.0
 
-        std_dev = self.variance ** 0.5
-        if std_dev == 0:
+        std = self.std_dev
+        if std == 0:
             return False, 0.0
 
-        # compute z-score
-        z_score = abs(value - self.mean) / std_dev
-
-        # use motivation to tighten or loosen threshold
+        z_score = abs(value - self.mean) / std
         base_threshold = 2.0
         eff_threshold = self._effective_num_std_devs(base_threshold) / max(1e-6, sensitivity)
-
+        
         is_anom = z_score > eff_threshold
-
-        # normalize anomaly score: how far beyond the threshold (clamped)
         anomaly_score = max(0.0, min(1.0, (z_score - eff_threshold) / (eff_threshold * 2.0)))
 
         return is_anom, anomaly_score
 
+    # --- NEW SYMBIOTIC METHODS ---
+
+    def novelty_score(self, observation: Any) -> float:
+        """
+        Calculates how 'novel' or surprising an observation is.
+        Used by Symbiotic Bridge to reward curiosity.
+        """
+        value = observation.value if hasattr(observation, "value") else float(observation)
+        if self.std_dev == 0:
+            return 0.0
+            
+        z_score = abs(value - self.mean) / self.std_dev
+        # Novelty is finding something just on the edge of known (1-3 std devs), 
+        # not necessarily extreme chaos.
+        novelty = max(0.0, min(1.0, z_score / 4.0))
+        return novelty
+
+    def enter_aggressive_mode(self) -> None:
+        """
+        Triggered when frustration peaks. 
+        Maximizes motivation and tightens thresholds to survive.
+        """
+        self.aggressive_mode = True
+        self.motivation = 1.0  # Full focus
+        # Frustration stays high until cooled down by time
+        logger.warning(f"Profile {self.behavior_type} entering AGGRESSIVE MODE")
+
+    def apply_overactive_penalty(self, penalty: float) -> None:
+        """
+        Punishes the system for spamming resolves (hyperactivity).
+        """
+        self.joy = max(0.0, self.joy - penalty)
+        self.motivation = max(0.0, self.motivation - penalty)
+
+    @property
+    def recent_resolve_rate(self) -> float:
+        """
+        Returns an estimated rate (0.0-1.0) of recent resolve actions.
+        """
+        return self._resolve_ema
+
     def resolve_anomaly(self, anomaly_score: float) -> None:
         """
-        Call this after handling or resolving an anomaly. This will:
-        - increase joy proportional to anomaly_score,
-        - modestly increase motivation,
-        - update last_update timestamp.
-
-        This models 'satisfaction' (joy) when issues are fixed, which in turn can
-        influence future learning/thresholding via motivation.
+        Call this after handling or resolving an anomaly.
         """
         self._decay_motivation_and_joy()
 
-        # scale gains with anomaly_score (0..1)
         gain = self._clamp01(anomaly_score)
         self.joy = self._clamp01(self.joy + gain * self.joy_gain)
         self.motivation = self._clamp01(self.motivation + gain * self.motivation_gain_on_resolve)
+        
+        # Decrease frustration on successful resolve
+        self.frustration = max(0.0, self.frustration - 0.2)
+        
+        # Update resolve rate tracker (bump up)
+        self._resolve_ema = 0.1 * 1.0 + 0.9 * self._resolve_ema
 
         self.last_update = time.time()
 
@@ -252,7 +275,6 @@ class BehaviorProfile:
         self.joy = self._clamp01(value)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Serialize profile state for persistence or export (observations excluded)."""
         return {
             "behavior_type": self.behavior_type,
             "mean": self.mean,
@@ -266,8 +288,16 @@ class BehaviorProfile:
             "learning_rate": self.learning_rate,
             "adaptation_count": self.adaptation_count,
             "last_update": self.last_update,
+            # Emotional State
             "motivation": self.motivation,
             "joy": self.joy,
+            "frustration": self.frustration,
+            "aggressive_mode": self.aggressive_mode,
+            # Traits
+            "calmness": self.calmness,
+            "curiosity_drive": self.curiosity_drive,
+            "motivation_memory": self.motivation_memory,
+            # Tuning
             "motivation_sensitivity": self.motivation_sensitivity,
             "threshold_sensitivity": self.threshold_sensitivity,
             "joy_gain": self.joy_gain,
@@ -276,7 +306,6 @@ class BehaviorProfile:
 
     @classmethod
     def from_dict(cls, data: Dict[str, Any]) -> "BehaviorProfile":
-        """Restore a BehaviorProfile from a dictionary previously returned by to_dict()."""
         bp = cls(behavior_type=data.get("behavior_type"))
         bp.mean = float(data.get("mean", 0.0))
         bp.m2 = float(data.get("m2", 0.0))
@@ -288,8 +317,16 @@ class BehaviorProfile:
         bp.learning_rate = float(data.get("learning_rate", 0.01))
         bp.adaptation_count = int(data.get("adaptation_count", 0))
         bp.last_update = float(data.get("last_update", time.time()))
+        
         bp.motivation = bp._clamp01(float(data.get("motivation", 0.5)))
         bp.joy = bp._clamp01(float(data.get("joy", 0.5)))
+        bp.frustration = float(data.get("frustration", 0.0))
+        bp.aggressive_mode = bool(data.get("aggressive_mode", False))
+        
+        bp.calmness = float(data.get("calmness", 0.5))
+        bp.curiosity_drive = float(data.get("curiosity_drive", 0.1))
+        bp.motivation_memory = float(data.get("motivation_memory", 0.95))
+        
         bp.motivation_sensitivity = float(data.get("motivation_sensitivity", bp.motivation_sensitivity))
         bp.threshold_sensitivity = float(data.get("threshold_sensitivity", bp.threshold_sensitivity))
         bp.joy_gain = float(data.get("joy_gain", bp.joy_gain))
@@ -297,49 +334,32 @@ class BehaviorProfile:
         return bp
 
     def get_statistics(self) -> Dict[str, Any]:
-        """Get current statistics."""
         return {
             "behavior_type": self.behavior_type,
             "mean": self.mean,
-            "variance": self.variance,
-            "std_dev": self.variance ** 0.5,
+            "std_dev": self.std_dev,
             "ema": self.ema,
-            "min_value": self.min_value,
-            "max_value": self.max_value,
-            "lower_threshold": self.lower_threshold,
-            "upper_threshold": self.upper_threshold,
             "adaptation_count": self.adaptation_count,
             "observations": len(self.observations),
             "motivation": self.motivation,
             "joy": self.joy,
+            "frustration": self.frustration,
+            "aggressive_mode": self.aggressive_mode
         }
+
 
 class AdaptiveLearningSystem:
     """
     Adaptive learning system that learns normal behavior and auto-tunes thresholds.
-    
-    Implements:
-    - Continual learning from observations
-    - Statistical profiling of normal behavior
-    - Automatic threshold tuning
-    - Anomaly detection
-    - Multi-variate behavior tracking
+    Coordinates multiple BehaviorProfiles.
     """
     
     def __init__(
         self,
         learning_rate: float = 0.01,
         profile_window_size: int = 1000,
-        auto_tune_interval: float = 300.0  # 5 minutes
+        auto_tune_interval: float = 300.0
     ):
-        """
-        Initialize adaptive learning system.
-        
-        Args:
-            learning_rate: Rate of adaptation to new observations
-            profile_window_size: Number of observations to keep per profile
-            auto_tune_interval: Seconds between automatic threshold tuning
-        """
         self.learning_rate = learning_rate
         self.profile_window_size = profile_window_size
         self.auto_tune_interval = auto_tune_interval
@@ -347,13 +367,11 @@ class AdaptiveLearningSystem:
         self.profiles: Dict[BehaviorType, BehaviorProfile] = {}
         self.last_auto_tune: Dict[BehaviorType, float] = {}
         
-        # Learning metrics
         self.total_observations = 0
         self.anomalies_detected = 0
         self.threshold_adjustments = 0
         
-        logger.info(f"Adaptive learning system initialized (lr={learning_rate}, "
-                   f"window={profile_window_size})")
+        logger.info(f"Adaptive learning system initialized (lr={learning_rate})")
     
     def observe(
         self,
@@ -361,18 +379,6 @@ class AdaptiveLearningSystem:
         value: float,
         metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
-        """
-        Record an observation and update learning.
-        
-        Args:
-            behavior_type: Type of behavior observed
-            value: Observed value
-            metadata: Optional metadata about the observation
-            
-        Returns:
-            Observation results including anomaly status
-        """
-        # Get or create profile
         if behavior_type not in self.profiles:
             self.profiles[behavior_type] = BehaviorProfile(
                 behavior_type=behavior_type,
@@ -382,10 +388,8 @@ class AdaptiveLearningSystem:
         
         profile = self.profiles[behavior_type]
         
-        # Check if anomaly before update
         is_anomaly, anomaly_score = profile.is_anomaly(value)
         
-        # Create observation
         observation = Observation(
             timestamp=time.time(),
             value=value,
@@ -393,14 +397,12 @@ class AdaptiveLearningSystem:
             metadata=metadata or {}
         )
         
-        # Update profile (learn from this observation)
         profile.update(observation)
         self.total_observations += 1
         
         if is_anomaly:
             self.anomalies_detected += 1
         
-        # Auto-tune thresholds periodically
         time_since_tune = time.time() - self.last_auto_tune[behavior_type]
         if time_since_tune >= self.auto_tune_interval:
             profile.auto_tune_thresholds()
@@ -414,21 +416,13 @@ class AdaptiveLearningSystem:
             'anomaly_score': anomaly_score,
             'profile_mean': profile.mean,
             'lower_threshold': profile.lower_threshold,
-            'upper_threshold': profile.upper_threshold
+            'upper_threshold': profile.upper_threshold,
+            'joy': profile.joy,
+            'frustration': profile.frustration
         }
     
     def force_auto_tune(self, behavior_type: Optional[BehaviorType] = None) -> Dict[str, Any]:
-        """
-        Force immediate auto-tuning of thresholds.
-        
-        Args:
-            behavior_type: Specific type to tune, or None for all
-            
-        Returns:
-            Tuning results
-        """
         results = {}
-        
         types_to_tune = [behavior_type] if behavior_type else list(self.profiles.keys())
         
         for btype in types_to_tune:
@@ -437,23 +431,17 @@ class AdaptiveLearningSystem:
                 lower, upper = profile.auto_tune_thresholds()
                 self.last_auto_tune[btype] = time.time()
                 self.threshold_adjustments += 1
-                
                 results[btype] = {
                     'lower_threshold': lower,
                     'upper_threshold': upper,
-                    'mean': profile.mean,
-                    'std_dev': profile.variance ** 0.5
+                    'mean': profile.mean
                 }
-        
-        logger.info(f"Auto-tuned thresholds for {len(results)} behavior types")
         return results
     
     def get_profile(self, behavior_type: BehaviorType) -> Optional[BehaviorProfile]:
-        """Get behavior profile for a type."""
         return self.profiles.get(behavior_type)
     
     def get_all_statistics(self) -> Dict[str, Any]:
-        """Get statistics for all profiles."""
         profile_stats = {}
         for btype, profile in self.profiles.items():
             profile_stats[btype] = profile.get_statistics()
@@ -461,102 +449,34 @@ class AdaptiveLearningSystem:
         return {
             'total_observations': self.total_observations,
             'anomalies_detected': self.anomalies_detected,
-            'threshold_adjustments': self.threshold_adjustments,
-            'profiles': profile_stats,
-            'learning_rate': self.learning_rate
+            'profiles': profile_stats
         }
     
-    def predict_normal_range(
-        self,
-        behavior_type: BehaviorType,
-        confidence: float = 0.95
-    ) -> Optional[Tuple[float, float]]:
-        """
-        Predict the normal range for a behavior type.
-        
-        Args:
-            behavior_type: Type of behavior
-            confidence: Confidence level (0-1)
-            
-        Returns:
-            (lower_bound, upper_bound) or None if insufficient data
-        """
-        profile = self.profiles.get(behavior_type)
-        if not profile or profile.adaptation_count < 10:
-            return None
-        
-        # Use confidence interval based on normal distribution
-        from math import sqrt
-        
-        std_dev = sqrt(profile.variance)
-        # z-score for confidence level (approximation)
-        z = {0.90: 1.645, 0.95: 1.96, 0.99: 2.576}.get(confidence, 1.96)
-        
-        lower = profile.mean - z * std_dev
-        upper = profile.mean + z * std_dev
-        
-        return max(0.0, lower), min(1.0, upper)
-    
     def reset_profile(self, behavior_type: BehaviorType) -> None:
-        """Reset a behavior profile to start fresh learning."""
         if behavior_type in self.profiles:
             del self.profiles[behavior_type]
             del self.last_auto_tune[behavior_type]
             logger.info(f"Reset profile for {behavior_type}")
-    
+
     def export_learned_parameters(self) -> Dict[str, Any]:
-        """
-        Export learned parameters for persistence or transfer.
-        
-        Returns:
-            Dictionary of learned parameters
-        """
         export = {
             'learning_rate': self.learning_rate,
             'total_observations': self.total_observations,
-            'anomalies_detected': self.anomalies_detected,
-            'threshold_adjustments': self.threshold_adjustments,
             'profiles': {}
         }
-        
         for btype, profile in self.profiles.items():
-            export['profiles'][btype] = {
-                'mean': profile.mean,
-                'variance': profile.variance,
-                'min_value': profile.min_value,
-                'max_value': profile.max_value,
-                'lower_threshold': profile.lower_threshold,
-                'upper_threshold': profile.upper_threshold,
-                'adaptation_count': profile.adaptation_count
-            }
-        
+            export['profiles'][str(btype)] = profile.to_dict()
         return export
     
     def import_learned_parameters(self, parameters: Dict[str, Any]) -> None:
-        """
-        Import previously learned parameters.
-        
-        Args:
-            parameters: Dictionary of learned parameters from export
-        """
         self.learning_rate = parameters.get('learning_rate', self.learning_rate)
-        self.total_observations = parameters.get('total_observations', 0)
-        self.anomalies_detected = parameters.get('anomalies_detected', 0)
-        self.threshold_adjustments = parameters.get('threshold_adjustments', 0)
-        
         for btype_str, profile_data in parameters.get('profiles', {}).items():
-            btype = BehaviorType(btype_str)
-            profile = BehaviorProfile(behavior_type=btype, learning_rate=self.learning_rate)
-            
-            profile.mean = profile_data['mean']
-            profile.variance = profile_data['variance']
-            profile.min_value = profile_data['min_value']
-            profile.max_value = profile_data['max_value']
-            profile.lower_threshold = profile_data['lower_threshold']
-            profile.upper_threshold = profile_data['upper_threshold']
-            profile.adaptation_count = profile_data['adaptation_count']
-            
+            # Try to match Enum if possible, else string
+            try:
+                btype = BehaviorType(btype_str)
+            except ValueError:
+                btype = btype_str # Fallback
+                
+            profile = BehaviorProfile.from_dict(profile_data)
             self.profiles[btype] = profile
             self.last_auto_tune[btype] = time.time()
-        
-        logger.info(f"Imported parameters for {len(self.profiles)} behavior profiles")
