@@ -12,14 +12,25 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          # pip install -r requirements.txt
           # add any required deps here
+
+      - name: Debug workspace (optional)
+        run: |
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          pwd
+          ls -la
+          ls -la simulation || true
+          ls -la core || true
+
       - name: Run simulation from project root (ensures core is importable)
-        working-directory: adaptiveengineer
         run: |
           python -m simulation.run_simulation
