@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass, field
 from enum import Enum
 
-from core.plugin_base import Plugin
+from core.plugin_base import PluginBase
 
 logger = logging.getLogger('swarm_robotics')
 
@@ -50,7 +50,7 @@ class SwarmTask:
     completed: bool = False
 
 
-class SwarmRoboticsPlugin(Plugin):
+class SwarmRoboticsPlugin(PluginBase):
     """
     Plugin for swarm robotics coordination.
     
@@ -74,7 +74,7 @@ class SwarmRoboticsPlugin(Plugin):
             perception_radius: Range for sensing neighbors
             obstacle_avoidance_range: Range for obstacle detection
         """
-        super().__init__()
+        super().__init__(plugin_id="swarm_robotics", config={})
         self.formation_type = formation_type
         self.behavior_mode = behavior_mode
         self.perception_radius = perception_radius
@@ -106,6 +106,51 @@ class SwarmRoboticsPlugin(Plugin):
         logger.info(f"SwarmRoboticsPlugin initialized: "
                    f"formation={formation_type.value}, "
                    f"behavior={behavior_mode.value}")
+    
+    def get_plugin_type(self) -> str:
+        """Return plugin type"""
+        return "SwarmRobotics"
+    
+    def get_state_schema(self) -> Dict[str, Any]:
+        """Define state variables"""
+        return {}
+    
+    def update_state(self, delta_time: float) -> None:
+        """Update plugin state - handled by update()"""
+        pass
+    
+    def process_signal(self, signal: Any) -> Optional[Any]:
+        """Process incoming signals"""
+        return None
+    
+    def get_actions(self) -> List[str]:
+        """Return available actions"""
+        return [
+            "change_formation",
+            "change_behavior",
+            "add_task",
+            "regroup"
+        ]
+    
+    def execute_action(self, action_type: str, params: Dict[str, Any]) -> bool:
+        """Execute plugin action"""
+        try:
+            if action_type == "change_formation":
+                formation = FormationType(params.get("formation", "circle"))
+                self.set_formation_type(formation)
+                return True
+            elif action_type == "change_behavior":
+                behavior = SwarmBehavior(params.get("behavior", "flocking"))
+                self.set_behavior_mode(behavior)
+                return True
+            elif action_type == "add_task":
+                task = params.get("task")
+                if task:
+                    self.add_task(task)
+                    return True
+            return False
+        except Exception:
+            return False
     
     def initialize(self, node: Any) -> None:
         """Initialize plugin for a node"""
