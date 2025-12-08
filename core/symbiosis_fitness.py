@@ -76,7 +76,7 @@ def evaluate_symbiosis(strategy, scenario_data: List[Any]) -> float:
         
         # Adaptation score: how well does agent handle change?
         if error < 3.0:
-            adaptation_score += 0. 01
+            adaptation_score += 0.01
     
     # Normalize scores
     avg_joy = joy / len(scenario_data)
