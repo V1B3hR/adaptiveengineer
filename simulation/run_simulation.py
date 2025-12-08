@@ -1,6 +1,12 @@
 import random
 import math
 import time
+import sys
+import os
+
+# Ensure project root is on sys.path so 'core' can be imported when running from simulation
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from core.evolution_engine import EvolutionEngine, StrategyType
 from core.adaptive_learning import Observation, BehaviorType
 from core.symbiosis_fitness import evaluate_symbiosis
@@ -44,36 +50,26 @@ def run_cyber_evolution():
     print("=== INICJALIZACJA SYMULACJI: CYFROWA BIOLOGIA v1 ===")
     
     # 1. Definiujemy DNA (zakresy parametrów)
-    # Ewolucja będzie szukać idealnej kombinacji tych cech
     dna_ranges = {
-        # Cechy podstawowe
         "learning_rate": (0.001, 0.1),
-        
-        # Osobowość (To nas najbardziej interesuje!)
-        "calmness": (0.0, 1.0),          # 0.0=Wybuchowy, 1.0=Stoik
-        "curiosity_drive": (0.0, 0.5),   # Jak bardzo lubi nowości
-        "motivation_memory": (0.8, 0.99),# Jak długo pamięta sukcesy
-        
-        # Reaktywność emocjonalna
+        "calmness": (0.0, 1.0),
+        "curiosity_drive": (0.0, 0.5),
+        "motivation_memory": (0.8, 0.99),
         "threshold_sensitivity": (0.1, 0.9),
         "motivation_sensitivity": (0.1, 0.9),
-        
-        # Fizjologia
         "joy_gain": (0.01, 0.1),
         "motivation_decay_per_sec": (0.0001, 0.001)
     }
 
     # 2. Tworzymy silnik ewolucyjny
     engine = EvolutionEngine(
-        population_size=20,      # Mała populacja dla testu
+        population_size=20,
         mutation_rate=0.1,
         elitism_count=3,
         persistence_dir="sim_data"
     )
 
-    # Inicjalizacja populacji "Symbiotic Test"
-    engine.initialize_population(StrategyType.THRESHOLD, dna_ranges) 
-    # (Używamy typu THRESHOLD jako kontenera, ale traktujemy to jako Symbiotic)
+    engine.initialize_population(StrategyType.THRESHOLD, dna_ranges)
 
     # 3. Pętla Ewolucyjna
     generations = 5
@@ -85,13 +81,9 @@ def run_cyber_evolution():
     for gen in range(generations):
         print(f"--- POKOLENIE {gen + 1} ---")
         
-        # Funkcja oceniająca (Fitness Function)
-        # To tutaj most (symbiosis_fitness) łączy Ewolucję z AI
         def evaluation_wrapper(strategy):
-            # Każdy osobnik przeżywa ten sam scenariusz
             return evaluate_symbiosis(strategy, scenario_data)
 
-        # Uruchom ewolucję
         stats = engine.evolve_generation(StrategyType.THRESHOLD, evaluation_wrapper)
         
         best_dna = engine.get_best_strategy(StrategyType.THRESHOLD)
@@ -99,7 +91,6 @@ def run_cyber_evolution():
         print(f"  Najlepszy Fitness (Radość): {stats['best_fitness']:.4f}")
         print(f"  Średnia populacji: {stats['avg_fitness']:.4f}")
         
-        # Podgląd zwycięzcy tej rundy
         if best_dna:
             p = best_dna.parameters
             personality = "Nieznana"
