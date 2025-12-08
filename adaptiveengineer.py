@@ -534,6 +534,12 @@ class AliveLoopNode:
         for emotion_name in self.emotion_schema.keys():
             self.emotion_histories[emotion_name] = deque(maxlen=history_maxlen)
 
+        # Frequency Intelligence System integration
+        self.frequency_sensors = None  # Will hold UnifiedFrequencyIntelligence instance
+        self.frequency_threats = deque(maxlen=50)  # Recent frequency-based threats
+        self.frequency_baseline = {}  # Baseline frequency environment
+        self._frequency_intelligence_enabled = False
+
         # Log configuration application
         if self.config and self._get_config_value('log_config_events', default=False):
             self.config.log_event('config', f'Node {self.node_id} initialized with configuration',
@@ -3482,6 +3488,194 @@ class AliveLoopNode:
         logger.info(f"Node {self.node_id} shared threat intelligence with {notified} nodes")
         
         return notified
+    
+    def enable_frequency_intelligence(
+        self,
+        enable_rf: bool = True,
+        enable_acoustic: bool = True,
+        enable_vibration: bool = True,
+        enable_network: bool = True,
+        enable_behavioral: bool = True,
+        enable_keystroke: bool = True
+    ) -> bool:
+        """
+        Enable Frequency Intelligence System for this node.
+        
+        Initializes the unified frequency analyzer with specified domains.
+        
+        Args:
+            enable_rf: Enable RF spectrum analysis
+            enable_acoustic: Enable acoustic frequency analysis
+            enable_vibration: Enable vibration frequency analysis
+            enable_network: Enable network frequency analysis
+            enable_behavioral: Enable behavioral frequency analysis
+            enable_keystroke: Enable keystroke frequency analysis
+            
+        Returns:
+            True if successfully enabled
+        """
+        try:
+            from core.unified_frequency_intelligence import UnifiedFrequencyIntelligence
+            
+            self.frequency_sensors = UnifiedFrequencyIntelligence(
+                enable_rf=enable_rf,
+                enable_acoustic=enable_acoustic,
+                enable_vibration=enable_vibration,
+                enable_network=enable_network,
+                enable_behavioral=enable_behavioral,
+                enable_keystroke=enable_keystroke
+            )
+            
+            self._frequency_intelligence_enabled = True
+            logger.info(f"Node {self.node_id}: Frequency Intelligence System enabled")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Node {self.node_id}: Failed to enable Frequency Intelligence: {e}")
+            return False
+    
+    def analyze_frequency_environment(
+        self,
+        duration_seconds: float = 1.0
+    ) -> Dict[str, Any]:
+        """
+        Analyze frequency environment across all domains.
+        
+        Args:
+            duration_seconds: Duration to analyze
+            
+        Returns:
+            Dictionary with frequency environment data
+        """
+        if not self._frequency_intelligence_enabled or not self.frequency_sensors:
+            logger.warning(f"Node {self.node_id}: Frequency Intelligence not enabled")
+            return {"error": "Frequency Intelligence not enabled"}
+        
+        try:
+            # Battery-aware adaptive analysis
+            battery_level = self.energy / 10.0  # Normalize to 0-1
+            
+            # Analyze all frequencies
+            environment = self.frequency_sensors.analyze_all_frequencies(
+                battery_level=battery_level,
+                duration_seconds=duration_seconds
+            )
+            
+            # Store baseline if not set
+            if not self.frequency_baseline:
+                self.frequency_baseline = {
+                    "rf_signals": environment.rf_signals,
+                    "rf_threats": environment.rf_threats,
+                    "acoustic_events": environment.acoustic_events,
+                    "vibration_events": environment.vibration_events,
+                    "network_threats": environment.network_threats,
+                    "behavior_threats": environment.behavior_threats,
+                    "timestamp": environment.timestamp
+                }
+                logger.info(f"Node {self.node_id}: Frequency baseline established")
+            
+            # Store threats
+            if environment.active_correlations:
+                for correlation_type in environment.active_correlations:
+                    self.frequency_threats.append({
+                        "type": correlation_type.value,
+                        "timestamp": environment.timestamp,
+                        "threat_score": environment.overall_threat_score
+                    })
+            
+            return {
+                "timestamp": environment.timestamp,
+                "overall_threat_score": environment.overall_threat_score,
+                "rf_signals": environment.rf_signals,
+                "rf_threats": environment.rf_threats,
+                "acoustic_events": environment.acoustic_events,
+                "vibration_events": environment.vibration_events,
+                "network_threats": environment.network_threats,
+                "behavior_threats": environment.behavior_threats,
+                "authentication_status": environment.authentication_status,
+                "active_correlations": [c.value for c in environment.active_correlations]
+            }
+            
+        except Exception as e:
+            logger.error(f"Node {self.node_id}: Frequency analysis error: {e}")
+            return {"error": str(e)}
+    
+    def adapt_to_frequency_threats(self) -> List[str]:
+        """
+        Adapt behavior based on detected frequency threats.
+        
+        Returns:
+            List of actions taken
+        """
+        if not self._frequency_intelligence_enabled or not self.frequency_sensors:
+            return []
+        
+        actions = []
+        
+        try:
+            # Get threat report
+            threat_report = self.frequency_sensors.get_threat_report()
+            
+            threat_score = threat_report["current_environment"]["overall_threat_score"]
+            active_correlations = threat_report["active_correlations"]
+            
+            # Adapt behavior based on threat level
+            if threat_score > 0.7:
+                # High threat - enter defensive mode
+                self.threat_assessment_level = 3  # Critical
+                
+                # Reduce energy consumption for critical systems only
+                if self.energy > 2.0:
+                    actions.append("Entered defensive mode - reducing non-critical operations")
+                
+                # Increase anxiety proportionally
+                self.anxiety = min(10.0, self.anxiety + threat_score * 2)
+                actions.append(f"Heightened anxiety due to threat level: {threat_score:.2f}")
+                
+            elif threat_score > 0.4:
+                # Medium threat - elevated awareness
+                self.threat_assessment_level = 2  # High
+                actions.append("Elevated threat awareness")
+                
+                # Moderate anxiety increase
+                self.anxiety = min(10.0, self.anxiety + threat_score)
+            
+            else:
+                # Low/no threat - normal operations
+                self.threat_assessment_level = max(0, self.threat_assessment_level - 1)
+            
+            # Handle specific threat correlations
+            if "physical_cyber_attack" in active_correlations:
+                # Physical + cyber attack - activate all defenses
+                actions.append("Physical-cyber attack detected - activating countermeasures")
+                self.emergency_mode = True
+                
+            if "apt_campaign" in active_correlations:
+                # APT campaign - increase monitoring
+                actions.append("APT campaign detected - increasing surveillance")
+                
+            if "insider_threat" in active_correlations:
+                # Insider threat - restrict access
+                actions.append("Insider threat detected - restricting sensitive operations")
+                
+            if "coordinated_attack" in active_correlations:
+                # Coordinated attack - emergency protocols
+                actions.append("Coordinated attack detected - emergency protocols activated")
+                self.emergency_mode = True
+                self.survival_mode_active = True
+            
+            # Log recommendations
+            for recommendation in threat_report["recommendations"][:3]:  # Top 3
+                actions.append(f"Recommendation: {recommendation}")
+            
+            if actions:
+                logger.info(f"Node {self.node_id} adapted to frequency threats: {len(actions)} actions")
+            
+            return actions
+            
+        except Exception as e:
+            logger.error(f"Node {self.node_id}: Threat adaptation error: {e}")
+            return [f"Error: {e}"]
 
 
 # Example usage in a multi-node simulation
