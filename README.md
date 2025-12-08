@@ -46,10 +46,13 @@ Each phase’s full implementation and validation are documented:
 ## Features at a Glance
 
 - **AliveLoopNode:** Socially-aware, energetically-limited agents with emotion and trust state, privacy, and resilience
-- **Plugins:** IT Operations, Security, Artificial Life, and Secure Communication plugins, easily extendable
+- **Plugins:** IT Operations, Security, Artificial Life, Swarm Robotics, and Secure Communication plugins, easily extendable
 - **Learning Engines:** Evolutionary, adaptive, pattern recognition, auto-tuning, trust network, and consensus mechanisms
 - **Incident Memory:** Pattern learning, event tracing, and replay
 - **Swarm Defenses:** Automated, coordinated, self-healing agent swarms
+- **Cyber-Defense:** Threat pattern genome system with adversarial co-evolution and logical defensive reasoning
+- **Swarm Robotics:** Physical robot coordination with flocking, foraging, and formation control
+- **System Metrics Bridge:** Real-world mapping for production cyber-defense and robotics deployment
 - **Governance:** Byzantine-resilient reputation, contract net protocols, council-based oversight, and ethical guardrails
 - **Human-in-the-Loop:** Full compliance path, approval workflows, and open-ended system adaptation
 
@@ -114,6 +117,38 @@ python3 example/example_phase4.py
 ```bash
 python3 example/example_phase5.py
 ```
+
+**Cyber-Defense: Adversarial Co-Evolution**
+```bash
+python3 example/example_cyber_defense.py
+```
+
+**Swarm Robotics: Distributed Coordination**
+```bash
+python3 example/example_swarm_robotics.py
+```
+
+**Hybrid Defense Swarm: Mobile Cyber-Defense**
+```bash
+python3 example/example_hybrid_defense_swarm.py
+```
+
+---
+
+## Documentation
+
+### Detailed Guides
+
+- **[Cyber-Defense Guide](docs/CYBER_DEFENSE.md)**: Threat pattern genome system, adversarial co-evolution, and production deployment
+- **[Swarm Robotics Guide](docs/SWARM_ROBOTICS.md)**: Physical robot integration, formation control, and hardware deployment
+
+### API Reference
+
+Core modules:
+- `core/threat_patterns.py`: Threat detection and evolution
+- `simulation/adversarial_environment.py`: Red team vs blue team simulation
+- `plugins/swarm_robotics.py`: Swarm coordination and control
+- `core/system_metrics_bridge.py`: Real-world system mapping
 
 ---
 
