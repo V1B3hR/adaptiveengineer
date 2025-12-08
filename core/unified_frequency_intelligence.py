@@ -94,6 +94,15 @@ class UnifiedFrequencyIntelligence:
         keystroke_analyzer: Keystroke frequency analyzer
     """
     
+    # Domain weighting factors for threat scoring (configurable)
+    WEIGHT_RF = 0.2
+    WEIGHT_ACOUSTIC = 0.1
+    WEIGHT_VIBRATION = 0.05
+    WEIGHT_NETWORK = 0.25
+    WEIGHT_BEHAVIORAL = 0.3
+    WEIGHT_AUTH_REJECTED = 0.5
+    WEIGHT_AUTH_SUSPICIOUS = 0.2
+    
     def __init__(
         self,
         enable_rf: bool = True,
@@ -257,6 +266,9 @@ class UnifiedFrequencyIntelligence:
         """
         Calculate overall threat score (0.0 to 1.0).
         
+        Uses configurable domain weighting factors to balance contributions
+        from different threat detection domains.
+        
         Args:
             rf_threats: Number of RF threats
             acoustic_events: Number of acoustic events
@@ -270,18 +282,18 @@ class UnifiedFrequencyIntelligence:
         """
         score = 0.0
         
-        # Weight each domain
-        score += min(1.0, rf_threats * 0.2)
-        score += min(1.0, acoustic_events * 0.1)
-        score += min(1.0, vibration_events * 0.05)
-        score += min(1.0, network_threats * 0.25)
-        score += min(1.0, behavior_threats * 0.3)
+        # Weight each domain using class constants
+        score += min(1.0, rf_threats * self.WEIGHT_RF)
+        score += min(1.0, acoustic_events * self.WEIGHT_ACOUSTIC)
+        score += min(1.0, vibration_events * self.WEIGHT_VIBRATION)
+        score += min(1.0, network_threats * self.WEIGHT_NETWORK)
+        score += min(1.0, behavior_threats * self.WEIGHT_BEHAVIORAL)
         
         # Authentication failures are critical
         if auth_status == "rejected":
-            score += 0.5
+            score += self.WEIGHT_AUTH_REJECTED
         elif auth_status == "suspicious":
-            score += 0.2
+            score += self.WEIGHT_AUTH_SUSPICIOUS
         
         return min(1.0, score)
     

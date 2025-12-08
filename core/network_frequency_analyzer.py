@@ -220,8 +220,11 @@ class NetworkFrequencyAnalyzer:
         percentile_99 = np.percentile(inter_arrival_times, 99)
         clipped_times = np.clip(inter_arrival_times, 0, percentile_99)
         
-        # Resample to uniform time series if needed
-        # For simplicity, use the times directly with zero-padding
+        # Note: For non-uniform time intervals, ideally we would resample to uniform intervals
+        # using interpolation. For this implementation, we use the times directly with the
+        # mean inter-arrival time as the effective sample rate. This provides reasonable
+        # results for detection purposes while keeping the implementation simple.
+        # Production systems may want to implement proper resampling for higher accuracy.
         n_fft = max(256, 2 ** int(np.ceil(np.log2(len(clipped_times)))))
         
         # Apply window

@@ -521,9 +521,16 @@ class VibrationFrequencyAnalyzer:
             timestamp=time.time()
         )
         
-        # Store/update baseline
+        # Store/update baseline with exponential moving average
         if structure_id not in self.structural_baselines:
             self.structural_baselines[structure_id] = health
+        else:
+            # Update baseline with exponential moving average (alpha=0.1 for smooth updates)
+            old_baseline = self.structural_baselines[structure_id]
+            alpha = 0.1
+            old_baseline.health_score = (1 - alpha) * old_baseline.health_score + alpha * health.health_score
+            if health.resonance_frequencies:
+                old_baseline.resonance_frequencies = health.resonance_frequencies
         
         logger.info(f"Structural health for {structure_id}: score={health_score:.2f}, "
                    f"resonances={len(resonance_frequencies)}, anomalies={len(anomalies)}")

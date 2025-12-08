@@ -354,9 +354,12 @@ class KeystrokeFrequencyAnalyzer:
         current_mean_dwell = np.mean(dwell_times)
         current_mean_flight = np.mean(flight_times)
         
-        # Avoid division by zero
-        dwell_distance = abs(current_mean_dwell - baseline.mean_dwell_time) / max(baseline.std_dwell_time, 0.001)
-        flight_distance = abs(current_mean_flight - baseline.mean_flight_time) / max(baseline.std_flight_time, 0.001)
+        # Minimum standard deviation threshold to avoid division by zero
+        MIN_STD_THRESHOLD = 0.001
+        
+        # Calculate normalized distances
+        dwell_distance = abs(current_mean_dwell - baseline.mean_dwell_time) / max(baseline.std_dwell_time, MIN_STD_THRESHOLD)
+        flight_distance = abs(current_mean_flight - baseline.mean_flight_time) / max(baseline.std_flight_time, MIN_STD_THRESHOLD)
         
         # Combined distance (weighted)
         combined_distance = (0.6 * fft_distance + 0.2 * dwell_distance + 0.2 * flight_distance)
