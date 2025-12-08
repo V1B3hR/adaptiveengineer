@@ -3199,6 +3199,289 @@ class AliveLoopNode:
 
         if expired_keys:
             logger.debug(f"Node {self.node_id}: Cleaned up {len(expired_keys)} expired deduplication entries")
+    
+    # Defensive Reasoning Methods for Cyber-Defense
+    
+    def reason_about_threat(self, pattern: Any, threat_library: Optional[Any] = None) -> Dict[str, Any]:
+        """
+        Analyze threat pattern using logical reasoning and historical data.
+        
+        Uses working memory for immediate analysis and long-term memory for
+        pattern matching. Combines known countermeasures through logical inference.
+        
+        Args:
+            pattern: ThreatPattern object to analyze
+            threat_library: Optional ThreatLibrary for similarity search
+            
+        Returns:
+            Dictionary with threat analysis and recommended countermeasures
+        """
+        from core.threat_patterns import ThreatPattern, ThreatLibrary
+        
+        analysis = {
+            'threat_id': getattr(pattern, 'pattern_id', 'unknown'),
+            'severity': getattr(pattern, 'severity', 0.5),
+            'attack_type': getattr(pattern, 'attack_type', 'unknown'),
+            'confidence': 0.0,
+            'similar_threats': [],
+            'recommended_countermeasures': [],
+            'reasoning_chain': []
+        }
+        
+        # Step 1: Check working memory for recent similar threats
+        analysis['reasoning_chain'].append("Analyzing working memory for recent threats")
+        recent_threats = 0
+        for item in self.working_memory:
+            if isinstance(item, dict) and item.get('type') == 'threat_detection':
+                recent_threats += 1
+        
+        # Higher confidence if we've seen similar threats recently
+        if recent_threats > 0:
+            analysis['confidence'] += 0.2
+            analysis['reasoning_chain'].append(f"Found {recent_threats} recent threat detections")
+        
+        # Step 2: Search threat library for similar patterns
+        if threat_library and isinstance(threat_library, ThreatLibrary):
+            analysis['reasoning_chain'].append("Searching threat library for similar patterns")
+            similar = threat_library.find_similar(pattern)
+            analysis['similar_threats'] = [
+                {
+                    'pattern_id': p.pattern_id,
+                    'similarity': sim,
+                    'attack_type': p.attack_type,
+                    'severity': p.severity
+                }
+                for p, sim in similar[:3]
+            ]
+            
+            if similar:
+                analysis['confidence'] += 0.3
+                analysis['reasoning_chain'].append(
+                    f"Found {len(similar)} similar threats in library"
+                )
+        
+        # Step 3: Check long-term memory for threat patterns
+        analysis['reasoning_chain'].append("Checking long-term memory for threat patterns")
+        if 'threat_patterns' in self.long_term_memory:
+            stored_patterns = self.long_term_memory['threat_patterns']
+            if isinstance(stored_patterns, list) and len(stored_patterns) > 0:
+                analysis['confidence'] += 0.2
+                analysis['reasoning_chain'].append(
+                    f"Retrieved {len(stored_patterns)} patterns from long-term memory"
+                )
+        
+        # Step 4: Get effective countermeasures
+        if threat_library:
+            analysis['reasoning_chain'].append("Retrieving effective countermeasures")
+            countermeasures = threat_library.get_effective_countermeasures(pattern)
+            analysis['recommended_countermeasures'] = [
+                {'countermeasure': cm, 'effectiveness': eff}
+                for cm, eff in countermeasures
+            ]
+        
+        # Step 5: Apply trust network to validate intelligence
+        analysis['reasoning_chain'].append("Validating with trust network")
+        trusted_nodes = sum(1 for trust in self.trust_network.values() if trust > 0.7)
+        if trusted_nodes > 0:
+            analysis['confidence'] += 0.1
+            analysis['reasoning_chain'].append(
+                f"Trust network validation: {trusted_nodes} trusted nodes"
+            )
+        
+        # Normalize confidence
+        analysis['confidence'] = min(1.0, analysis['confidence'])
+        
+        # Log reasoning
+        logger.info(f"Node {self.node_id} threat analysis: "
+                   f"confidence={analysis['confidence']:.2f}, "
+                   f"countermeasures={len(analysis['recommended_countermeasures'])}")
+        
+        return analysis
+    
+    def generate_countermeasure(self, threat_pattern: Any) -> Dict[str, Any]:
+        """
+        Generate novel defensive strategy by combining known techniques.
+        
+        Uses logical constraints to ensure feasibility:
+        - Energy cost must be affordable
+        - Effectiveness must justify cost
+        - Must not violate trust relationships
+        
+        Args:
+            threat_pattern: ThreatPattern to defend against
+            
+        Returns:
+            Dictionary with countermeasure strategy
+        """
+        from core.threat_patterns import ThreatPattern
+        
+        severity = getattr(threat_pattern, 'severity', 0.5)
+        attack_type = getattr(threat_pattern, 'attack_type', 'unknown')
+        
+        countermeasure = {
+            'strategy': 'adaptive_defense',
+            'actions': [],
+            'energy_cost': 0.0,
+            'expected_effectiveness': 0.0,
+            'constraints_satisfied': True,
+            'reasoning': []
+        }
+        
+        # Determine defense strategy based on attack type
+        countermeasure['reasoning'].append(f"Analyzing attack type: {attack_type}")
+        
+        if 'energy_drain' in attack_type:
+            # Energy drain attacks: reduce consumption, activate reserves
+            countermeasure['actions'].append('reduce_energy_consumption')
+            countermeasure['actions'].append('activate_energy_reserves')
+            countermeasure['energy_cost'] = 1.0
+            countermeasure['expected_effectiveness'] = 0.7
+            countermeasure['reasoning'].append("Energy drain detected: conserving resources")
+            
+        elif 'jamming' in attack_type or 'communication' in attack_type:
+            # Communication attacks: switch channels, use redundancy
+            countermeasure['actions'].append('switch_communication_channel')
+            countermeasure['actions'].append('increase_signal_redundancy')
+            countermeasure['energy_cost'] = 0.8
+            countermeasure['expected_effectiveness'] = 0.65
+            countermeasure['reasoning'].append("Jamming detected: adapting communication")
+            
+        elif 'trust' in attack_type or 'poison' in attack_type:
+            # Trust attacks: verify sources, reduce trust
+            countermeasure['actions'].append('verify_node_identities')
+            countermeasure['actions'].append('reduce_trust_in_suspects')
+            countermeasure['energy_cost'] = 0.5
+            countermeasure['expected_effectiveness'] = 0.6
+            countermeasure['reasoning'].append("Trust poisoning: verifying identities")
+            
+        elif 'resource' in attack_type or 'exhaustion' in attack_type:
+            # Resource attacks: rate limiting, load balancing
+            countermeasure['actions'].append('apply_rate_limiting')
+            countermeasure['actions'].append('distribute_load')
+            countermeasure['energy_cost'] = 0.6
+            countermeasure['expected_effectiveness'] = 0.75
+            countermeasure['reasoning'].append("Resource exhaustion: applying limits")
+            
+        else:
+            # Generic defense
+            countermeasure['actions'].append('increase_monitoring')
+            countermeasure['actions'].append('alert_trusted_nodes')
+            countermeasure['energy_cost'] = 0.4
+            countermeasure['expected_effectiveness'] = 0.5
+            countermeasure['reasoning'].append("Unknown threat: generic defense")
+        
+        # Apply severity scaling
+        severity_multiplier = 0.5 + 0.5 * severity
+        countermeasure['energy_cost'] *= severity_multiplier
+        
+        # Check energy constraint
+        if countermeasure['energy_cost'] > self.energy:
+            countermeasure['constraints_satisfied'] = False
+            countermeasure['reasoning'].append(
+                f"Energy constraint violated: need {countermeasure['energy_cost']:.2f}, "
+                f"have {self.energy:.2f}"
+            )
+            # Fallback to minimal defense
+            countermeasure['actions'] = ['alert_trusted_nodes']
+            countermeasure['energy_cost'] = 0.2
+            countermeasure['expected_effectiveness'] = 0.3
+        
+        # Check cost-benefit ratio
+        cost_benefit = countermeasure['expected_effectiveness'] / max(0.1, countermeasure['energy_cost'])
+        if cost_benefit < 0.5:
+            countermeasure['reasoning'].append(
+                f"Low cost-benefit ratio: {cost_benefit:.2f}"
+            )
+        
+        countermeasure['reasoning'].append(
+            f"Final strategy: {len(countermeasure['actions'])} actions, "
+            f"cost={countermeasure['energy_cost']:.2f}, "
+            f"effectiveness={countermeasure['expected_effectiveness']:.2f}"
+        )
+        
+        logger.info(f"Node {self.node_id} generated countermeasure: "
+                   f"{countermeasure['actions']}")
+        
+        return countermeasure
+    
+    def share_threat_intelligence(
+        self,
+        target_nodes: List['AliveLoopNode'],
+        threat_pattern: Any,
+        confidence: float = 0.8
+    ) -> int:
+        """
+        Broadcast discovered threat to trusted nodes.
+        
+        Uses existing communication infrastructure to share threat intelligence.
+        Only shares with nodes that have sufficient trust relationship.
+        
+        Args:
+            target_nodes: List of nodes to notify
+            threat_pattern: ThreatPattern to share
+            confidence: Confidence score (0.0 to 1.0)
+            
+        Returns:
+            Number of nodes successfully notified
+        """
+        from core.threat_patterns import ThreatPattern
+        
+        if not target_nodes:
+            return 0
+        
+        notified = 0
+        min_trust = 0.5  # Only share with moderately trusted nodes
+        
+        for node in target_nodes:
+            # Check trust level
+            trust_level = self.trust_network.get(node.node_id, 0.0)
+            if trust_level < min_trust:
+                continue
+            
+            # Check communication range
+            distance = np.linalg.norm(self.position - node.position)
+            if distance > self.communication_range:
+                continue
+            
+            # Create threat intelligence signal
+            threat_data = {
+                'type': 'threat_intelligence',
+                'pattern_id': getattr(threat_pattern, 'pattern_id', 'unknown'),
+                'signature': getattr(threat_pattern, 'signature', []),
+                'severity': getattr(threat_pattern, 'severity', 0.5),
+                'attack_type': getattr(threat_pattern, 'attack_type', 'unknown'),
+                'confidence': confidence,
+                'source_trust': trust_level,
+                'timestamp': time.time()
+            }
+            
+            # Send as warning signal
+            signal = SocialSignal(
+                content=threat_data,
+                signal_type='warning',
+                urgency=min(1.0, confidence * getattr(threat_pattern, 'severity', 0.5)),
+                source_id=self.node_id,
+                requires_response=False
+            )
+            
+            # Send signal (receiver will process it)
+            try:
+                node.receive_signal(signal)
+                notified += 1
+            except Exception as e:
+                logger.warning(f"Failed to share threat intelligence with node {node.node_id}: {e}")
+        
+        # Store in working memory
+        self.working_memory.append({
+            'type': 'threat_intelligence_shared',
+            'timestamp': time.time(),
+            'recipients': notified,
+            'confidence': confidence
+        })
+        
+        logger.info(f"Node {self.node_id} shared threat intelligence with {notified} nodes")
+        
+        return notified
 
 
 # Example usage in a multi-node simulation
