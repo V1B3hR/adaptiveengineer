@@ -55,6 +55,8 @@ Each phase’s full implementation and validation are documented:
 - **System Metrics Bridge:** Real-world mapping for production cyber-defense and robotics deployment
 - **Governance:** Byzantine-resilient reputation, contract net protocols, council-based oversight, and ethical guardrails
 - **Human-in-the-Loop:** Full compliance path, approval workflows, and open-ended system adaptation
+- **Frequency Intelligence System:** Cross-domain threat detection via FFT analysis of RF, acoustic, vibration, network, behavioral, and keystroke patterns
+- **Advanced Sensor Suite:** Comprehensive environmental monitoring with humidity, light, acoustic array, motion, air quality, enhanced camera/LiDAR, and network sensors
 
 ---
 
@@ -133,6 +135,21 @@ python3 example/example_swarm_robotics.py
 python3 example/example_hybrid_defense_swarm.py
 ```
 
+**Frequency Intelligence: Cross-Domain Threat Detection**
+```bash
+python3 example/example_frequency_defense.py
+```
+
+**3D Drone Swarm: Frequency Sensors in Action**
+```bash
+python3 example/example_3d_drone_swarm.py
+```
+
+**Cyber Sensors: Network, Behavioral, and Keystroke Analysis**
+```bash
+python3 example/example_cyber_sensors.py
+```
+
 ---
 
 ## Documentation
@@ -141,6 +158,8 @@ python3 example/example_hybrid_defense_swarm.py
 
 - **[Cyber-Defense Guide](docs/CYBER_DEFENSE.md)**: Threat pattern genome system, adversarial co-evolution, and production deployment
 - **[Swarm Robotics Guide](docs/SWARM_ROBOTICS.md)**: Physical robot integration, formation control, and hardware deployment
+- **[Frequency Intelligence Guide](docs/FREQUENCY_INTELLIGENCE.md)**: Cross-domain frequency analysis, threat correlation, and FFT-based detection
+- **[Advanced Sensors Guide](docs/ADVANCED_SENSORS.md)**: Comprehensive sensor suite specifications and integration
 
 ### API Reference
 
