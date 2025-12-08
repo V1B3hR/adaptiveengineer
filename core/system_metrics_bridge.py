@@ -85,8 +85,8 @@ class SystemMetricsBridge:
         self._calibration_samples = []
         
         # Network counters (for delta calculation)
-        self._last_network_counters: Optional[psutil._common.snetio] = None
-        self._last_disk_counters: Optional[psutil._common.sdiskio] = None
+        self._last_network_counters: Optional[Any] = None
+        self._last_disk_counters: Optional[Any] = None
         
         logger.info("SystemMetricsBridge initialized")
     

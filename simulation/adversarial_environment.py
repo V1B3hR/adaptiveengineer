@@ -191,8 +191,13 @@ class AttackerAgent:
         
         pattern = self.attack_strategies[attack_type]
         
+        # Attack configuration constants
+        ENERGY_COST_MULTIPLIER = 0.5
+        DAMAGE_BASE_MULTIPLIER = 2.0
+        DAMAGE_VARIANCE_STDDEV = 0.2
+        
         # Calculate attack effectiveness based on pattern severity
-        energy_cost = 0.5 * pattern.severity
+        energy_cost = ENERGY_COST_MULTIPLIER * pattern.severity
         if self.energy < energy_cost:
             # Not enough energy to attack
             event = AttackEvent(
@@ -210,8 +215,8 @@ class AttackerAgent:
         self.energy -= energy_cost
         
         # Calculate damage (energy drained from target)
-        base_damage = pattern.severity * 2.0
-        variance = random.gauss(1.0, 0.2)
+        base_damage = pattern.severity * DAMAGE_BASE_MULTIPLIER
+        variance = random.gauss(1.0, DAMAGE_VARIANCE_STDDEV)
         energy_drained = max(0.0, base_damage * variance)
         
         # Determine success (higher severity = higher success chance)

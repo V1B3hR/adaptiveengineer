@@ -263,8 +263,9 @@ class ThreatLibrary:
         sig1 = pattern1.signature[:min_len]
         sig2 = pattern2.signature[:min_len]
         
-        # Euclidean distance in signature space
-        distance = math.sqrt(sum((a - b) ** 2 for a, b in zip(sig1, sig2)))
+        # Euclidean distance in signature space (using efficient calculation)
+        import numpy as np
+        distance = np.linalg.norm(np.array(sig1) - np.array(sig2))
         
         # Normalize by maximum possible distance
         max_distance = math.sqrt(min_len)

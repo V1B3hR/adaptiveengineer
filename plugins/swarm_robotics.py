@@ -506,8 +506,9 @@ class SwarmRoboticsPlugin(PluginBase):
         Returns:
             List of nearby nodes
         """
-        # This would be populated by the simulation environment
-        # For now, return empty list (will be filled by external coordinator)
+        # Return stored neighbors if available (set by external coordinator)
+        if hasattr(node, '_swarm_neighbors'):
+            return node._swarm_neighbors
         return []
     
     def set_neighbors(self, node: Any, neighbors: List[Any]) -> None:
