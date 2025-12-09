@@ -108,7 +108,11 @@ class TestSwarmBenchmarks:
         )
         
         def update_trust():
-            node.trust_network_system.update_trust(2, 0.8, reason="test")
+            node.trust_network_system.update_trust(
+                target_node_id=2, 
+                delta=0.1, 
+                context="test_interaction"
+            )
         
         benchmark(update_trust)
 
@@ -118,23 +122,32 @@ class TestCommunicationBenchmarks:
     
     def test_signal_creation(self, benchmark):
         """Benchmark signal creation."""
-        node = AliveLoopNode(
+        sender = AliveLoopNode(
             position=(0, 0, 0),
             velocity=(0, 0, 0),
             initial_energy=10.0,
             node_id=1
         )
+        receiver = AliveLoopNode(
+            position=(1, 1, 1),
+            velocity=(0, 0, 0),
+            initial_energy=10.0,
+            node_id=2
+        )
         
         def create_signal():
-            node.broadcast_signal(
+            sender.send_signal(
+                target_nodes=[receiver],
                 signal_type="test_signal",
-                data={"message": "test"}
+                content={"message": "test"}
             )
         
         benchmark(create_signal)
     
-    def test_message_processing(self, benchmark):
-        """Benchmark message processing."""
+    def test_signal_processing(self, benchmark):
+        """Benchmark signal processing."""
+        from core.social_signals import SocialSignal
+        
         node = AliveLoopNode(
             position=(0, 0, 0),
             velocity=(0, 0, 0),
@@ -142,20 +155,18 @@ class TestCommunicationBenchmarks:
             node_id=1
         )
         
-        # Add messages to queue
-        for i in range(10):
-            node.communication_queue.append({
-                "type": "test_message",
-                "data": f"message_{i}"
-            })
+        # Create a signal to process
+        signal = SocialSignal(
+            signal_type="resource_offer",
+            source_node_id=2,
+            target_node_id=1,
+            data={"resource": "energy", "amount": 1.0}
+        )
         
-        def process_messages():
-            while node.communication_queue:
-                msg = node.communication_queue.popleft()
-                # Process message
-                _ = msg.get("type")
+        def process_signal():
+            node.receive_signal(signal)
         
-        benchmark(process_messages)
+        benchmark(process_signal)
 
 
 class TestSpatialBenchmarks:
