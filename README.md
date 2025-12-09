@@ -68,6 +68,18 @@ Each phase’s full implementation and validation are documented:
 pip install -r requirements.txt
 ```
 
+### Reproducible Run
+
+Run a minimal simulation with the sample configuration:
+
+```bash
+python -m pytest tests/test_smoke.py -v
+```
+
+Outputs will be saved to:
+- `outputs/` - Simulation results and artifacts
+- `logs/` - Runtime logs (if logging enabled)
+
 ### Basic Example
 
 ```python
@@ -89,6 +101,18 @@ manager.initialize_all(node)
 
 # Update state
 manager.update_all(delta_time=1.0)
+```
+
+### Custom Configuration
+
+Create a custom configuration file and run with it:
+
+```bash
+# Copy and edit sample config
+cp configs/sample_run.yaml configs/my_config.yaml
+
+# Run with custom config (adapt your script to load the config)
+python tests/test_smoke.py
 ```
 
 ### Run Demo Simulations

@@ -1,0 +1,48 @@
+# Sample Configuration for Adaptive Engineer Simulation
+# This configuration provides a minimal reproducible run
+
+simulation:
+  # Random seed for reproducibility
+  seed: 42
+  
+  # Simulation duration
+  timesteps: 10
+  
+  # Number of agents
+  num_nodes: 3
+  
+  # Spatial dimensions (2D or 3D)
+  spatial_dims: 2
+
+nodes:
+  # Initial energy for nodes
+  initial_energy: 10.0
+  
+  # Field strength
+  field_strength: 1.0
+  
+  # Communication range
+  communication_range: 2.0
+
+plugins:
+  # Enable IT Operations plugin
+  it_operations: true
+  
+  # Enable Security plugin
+  security: true
+  
+  # Enable Artificial Life plugin
+  artificial_life: true
+
+outputs:
+  # Output directory
+  output_dir: outputs
+  
+  # Enable logging
+  enable_logging: true
+  
+  # Log directory
+  log_dir: logs
+  
+  # Log level (DEBUG, INFO, WARNING, ERROR)
+  log_level: INFO
