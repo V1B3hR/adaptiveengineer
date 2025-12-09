@@ -50,3 +50,7 @@ htmlcov/
 *.log
 *.tmp
 /tmp/
+
+# Simulation outputs
+outputs/
+logs/
