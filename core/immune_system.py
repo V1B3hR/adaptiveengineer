@@ -495,7 +495,7 @@ class AdaptiveImmuneSystem:
                 
         # Novel threat - create new signature
         feature_str = f"{threat_type}_{str(sorted(threat_features.items()))}"
-        signature_hash = hashlib.md5(feature_str.encode()).hexdigest()[:16]
+        signature_hash = hashlib.sha256(feature_str.encode()).hexdigest()[:16]
         signature_id = f"threat_{signature_hash}"
         
         signature = ThreatSignature(

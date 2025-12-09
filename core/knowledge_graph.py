@@ -279,7 +279,7 @@ class KnowledgeGraph:
         """
         # Generate signature from features
         feature_str = json.dumps(features, sort_keys=True)
-        signature = hashlib.md5(feature_str.encode()).hexdigest()[:16]
+        signature = hashlib.sha256(feature_str.encode()).hexdigest()[:16]
         
         # Check if pattern exists
         for pattern in self.problem_patterns.values():
@@ -318,7 +318,7 @@ class KnowledgeGraph:
         Returns:
             Strategy ID
         """
-        strategy_id = f"strategy_{hashlib.md5(name.encode()).hexdigest()[:16]}"
+        strategy_id = f"strategy_{hashlib.sha256(name.encode()).hexdigest()[:16]}"
         
         if strategy_id not in self.solution_strategies:
             strategy = SolutionStrategy(

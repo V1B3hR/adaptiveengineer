@@ -67,7 +67,7 @@ class SensoryInput:
         """Generate signature if not provided."""
         if self.signature is None:
             data_str = f"{self.sense_type}-{self.source_node}-{self.data}"
-            self.signature = hashlib.md5(data_str.encode()).hexdigest()[:16]
+            self.signature = hashlib.sha256(data_str.encode()).hexdigest()[:16]
 
 
 class BaseSensorAgent(ABC):
