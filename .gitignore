@@ -45,6 +45,8 @@ Thumbs.db
 .coverage
 htmlcov/
 .tox/
+coverage.json
+.mypy_cache/
 
 # Temporary
 *.log
