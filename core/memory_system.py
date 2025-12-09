@@ -18,6 +18,7 @@ from typing import Any, Dict, List, Optional
 
 class MemoryType(str, Enum):
     """Types of memory for agent nodes."""
+
     REWARD = "reward"
     SHARED = "shared"
     PREDICTION = "prediction"
@@ -27,6 +28,7 @@ class MemoryType(str, Enum):
 
 class Classification(str, Enum):
     """Privacy classification levels for memory content."""
+
     PUBLIC = "public"
     PROTECTED = "protected"
     PRIVATE = "private"
@@ -36,12 +38,13 @@ class Classification(str, Enum):
 @dataclass
 class Memory:
     """Structured memory with importance weighting and privacy controls.
-    
+
     Fields:
     - timestamp: integer epoch seconds when the memory was created (int(time.time()))
     - retention_limit: seconds to keep this memory before auto-expiry (None = keep)
     - size_mb: optional approximate size in megabytes (used by short-term store)
     """
+
     content: Any
     importance: float
     timestamp: int
@@ -62,7 +65,9 @@ class Memory:
     size_mb: float = 0.0
 
     # internal lock for thread-safety when updating mutable fields
-    _lock: threading.Lock = field(default_factory=threading.Lock, init=False, repr=False)
+    _lock: threading.Lock = field(
+        default_factory=threading.Lock, init=False, repr=False
+    )
 
     def __post_init__(self):
         # normalize enum/string input
@@ -123,7 +128,12 @@ class Memory:
             if self.is_expired(now):
                 self.importance = 0.0
 
-    def access(self, accessor_id: int, current_time: Optional[int] = None, summary: bool = False) -> Any:
+    def access(
+        self,
+        accessor_id: int,
+        current_time: Optional[int] = None,
+        summary: bool = False,
+    ) -> Any:
         """Access memory content with audit logging and privacy rules.
 
         - Logs actual access time.
@@ -135,13 +145,22 @@ class Memory:
             self.audit_log.append(f"accessed_by_{accessor_id}_at_{now}")
 
         # Access control
-        if self.classification == Classification.PRIVATE and accessor_id != self.source_node:
+        if (
+            self.classification == Classification.PRIVATE
+            and accessor_id != self.source_node
+        ):
             return "[REDACTED]"
 
-        if self.classification == Classification.CONFIDENTIAL and accessor_id != self.source_node:
+        if (
+            self.classification == Classification.CONFIDENTIAL
+            and accessor_id != self.source_node
+        ):
             return "[REDACTED - CONFIDENTIAL]"
 
-        if self.classification == Classification.PROTECTED and accessor_id != self.source_node:
+        if (
+            self.classification == Classification.PROTECTED
+            and accessor_id != self.source_node
+        ):
             text = str(self.content)
             if summary or len(text) > 100:
                 return f"[SUMMARY: {text[:100]}...]"
@@ -172,13 +191,17 @@ class Memory:
             data["content"] = self.access(redact_for)
         return data
 
-    def update_content(self, new_content: Any, importance_delta: Optional[float] = None) -> None:
+    def update_content(
+        self, new_content: Any, importance_delta: Optional[float] = None
+    ) -> None:
         """Safely update content and optionally adjust importance."""
         with self._lock:
             self.content = new_content
             if importance_delta is not None:
                 try:
-                    self.importance = max(0.0, float(self.importance + importance_delta))
+                    self.importance = max(
+                        0.0, float(self.importance + importance_delta)
+                    )
                 except Exception:
                     pass
 
@@ -218,7 +241,9 @@ class ShortMemoryStore:
     def put(self, key: int, mem: Memory) -> None:
         """Insert memory into short store; evict LRU entries when capacity exceeded."""
         if not mem.is_short():
-            raise ValueError("ShortMemoryStore only accepts Memory objects with memory_type=SHORT")
+            raise ValueError(
+                "ShortMemoryStore only accepts Memory objects with memory_type=SHORT"
+            )
 
         with self._lock:
             # ensure size_mb is set
@@ -235,7 +260,9 @@ class ShortMemoryStore:
                 self._used_mb -= old.size_mb
 
             # evict until room
-            while self._used_mb + mem.size_mb > self.capacity_mb and self._store:
+            while (
+                self._used_mb + mem.size_mb > self.capacity_mb and self._store
+            ):
                 _, evicted = self._store.popitem(last=False)
                 self._used_mb -= evicted.size_mb
 
@@ -266,4 +293,8 @@ class ShortMemoryStore:
 
     def stats(self) -> Dict[str, float]:
         with self._lock:
-            return {"capacity_mb": self.capacity_mb, "used_mb": self._used_mb, "count": len(self._store)}
+            return {
+                "capacity_mb": self.capacity_mb,
+                "used_mb": self._used_mb,
+                "count": len(self._store),
+            }
