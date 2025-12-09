@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {file = "LICENSE"}
 authors = [
-    {name = "V1B3hR", email = ""}
+    {name = "V1B3hR"}
 ]
 keywords = ["artificial-life", "swarm-intelligence", "self-awareness", "ai", "alife"]
 classifiers = [

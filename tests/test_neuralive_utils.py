@@ -64,10 +64,10 @@ def test_estimate_size_mb_exception_handling():
     """Test that function handles objects that can't be sized."""
 
     class UnsizableObject:
-        """Object that raises exception on getsizeof."""
+        """Object that raises TypeError on getsizeof."""
 
         def __sizeof__(self):
-            raise RuntimeError("Cannot determine size")
+            raise TypeError("Cannot determine size")
 
     obj = UnsizableObject()
     # Should not raise exception, should return 0.0

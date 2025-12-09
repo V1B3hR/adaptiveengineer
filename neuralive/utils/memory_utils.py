@@ -44,7 +44,9 @@ def estimate_size_mb(content: Any) -> float:
     # Generic size estimation
     try:
         size = sys.getsizeof(content)
-    except Exception:
+    except (TypeError, OSError):
+        # TypeError: object does not support __sizeof__
+        # OSError: can occur with certain system objects
         size = 0
 
     # Convert to MB (shallow estimate)
