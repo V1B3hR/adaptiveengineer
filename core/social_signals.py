@@ -9,7 +9,7 @@ This module provides structured signals with production features including:
 """
 
 import uuid
-from typing import Any, Optional
+from typing import Any
 
 from core.time_manager import get_timestamp
 
@@ -24,9 +24,9 @@ class SocialSignal:
         urgency: float,
         source_id: int,
         requires_response: bool = False,
-        idempotency_key: Optional[str] = None,
-        partition_key: Optional[str] = None,
-        correlation_id: Optional[str] = None,
+        idempotency_key: str | None = None,
+        partition_key: str | None = None,
+        correlation_id: str | None = None,
         schema_version: str = "1.0",
     ):
         self.id = str(uuid.uuid4())

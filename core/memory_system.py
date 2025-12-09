@@ -209,10 +209,23 @@ class Memory:
 class ShortMemoryStore:
     """Thread-safe LRU short-term memory store with MB capacity accounting.
 
+    This class provides a Least Recently Used (LRU) cache for short-term
+    memories with the following characteristics:
+
     - Default capacity is 4.0 MB (fast to hold and fetch).
     - Keys should be integers (e.g., memory id or timestamp).
     - Only stores Memory objects with memory_type == MemoryType.SHORT.
     - If a single Memory's size >= capacity, it will not be stored here.
+
+    Thread Safety:
+        All operations are protected by a reentrant lock (RLock), making
+        the store safe for concurrent access from multiple threads.
+
+    LRU Eviction Policy:
+        - When capacity is exceeded, least recently used items are evicted
+        - Access via get() updates the item's position to most recent
+        - Insertion via put() also marks the item as most recent
+        - Eviction continues until there is room for the new item
     """
 
     def __init__(self, capacity_mb: float = 4.0):
