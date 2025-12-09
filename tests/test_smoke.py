@@ -56,6 +56,8 @@ def test_basic_simulation():
         nodes.append(node)
     
     # Setup plugins for each node
+    # Note: This is a minimal smoke test that verifies basic simulation execution.
+    # Plugin functionality is tested in dedicated plugin tests.
     for node in nodes:
         manager = PluginManager()
         if config['plugins'].get('it_operations', False):
