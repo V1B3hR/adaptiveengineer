@@ -28,10 +28,10 @@ jobs:
           pip install black isort flake8 flake8-docstrings flake8-bugbear
       
       - name: Check code formatting with black
-        run: black --check --line-length=79 --diff . || true
+        run: black --check --line-length=79 --diff .
       
       - name: Check import sorting with isort
-        run: isort --check-only --profile black --line-length=79 --diff . || true
+        run: isort --check-only --profile black --line-length=79 --diff .
       
       - name: Lint with flake8
         run: |
@@ -119,8 +119,7 @@ jobs:
       
       - name: Run tests with coverage
         run: |
-          pytest tests/ -v --cov=. --cov-report=xml --cov-report=term -m "not slow" --tb=short || true
-        continue-on-error: true
+          pytest tests/ -v --cov=. --cov-report=xml --cov-report=term -m "not slow" --tb=short
       
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v4

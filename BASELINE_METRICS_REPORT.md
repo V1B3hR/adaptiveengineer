@@ -181,8 +181,9 @@ Top maintainability scores (A-grade: >19):
 | Date | Statement % | Branch % | Notes |
 |------|------------|----------|-------|
 | 2025-12-09 | 4.82% | ~20% | Baseline (smoke tests only) |
-| 2025-12-10 | 4.82% | ~20% | After CI/CD setup |
-| 2025-12-10 | +0.6% | +2% | After NodeCommunication extraction |
+| 2025-12-10 | 5.42% | ~22% | After CI/CD setup and NodeCommunication |
+
+**Note:** Coverage percentages are absolute values. The increase of +0.6% statement and +2% branch coverage is from the NodeCommunication module addition.
 
 ### Target Milestones
 - **Week 1:** 30% coverage, 1 module extracted ✅ (NodeCommunication)
