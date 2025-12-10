@@ -448,7 +448,7 @@ class CollectiveCognitionEngine:
         novelty = 1.0 - (len(set(strategy_a.actions) & set(strategy_b.actions)) / 
                         max(1, min(len(strategy_a.actions), len(strategy_b.actions))))
         
-        hybrid_id = f"hybrid_{hashlib.md5(name.encode()).hexdigest()[:12]}"
+        hybrid_id = f"hybrid_{hashlib.sha256(name.encode()).hexdigest()[:12]}"
         
         return HybridStrategy(
             strategy_id=hybrid_id,
