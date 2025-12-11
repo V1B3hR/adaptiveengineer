@@ -1,6 +1,7 @@
 from core.evolution_engine import Strategy
 from core.adaptive_learning import BehaviorProfile, AdaptiveLearningSystem
 
+
 def strategy_to_profile_config(strategy: Strategy) -> dict:
     """Przekład genomu (AL) na parametry osobowości AI."""
     p = strategy.parameters
@@ -8,23 +9,24 @@ def strategy_to_profile_config(strategy: Strategy) -> dict:
     return {
         # Plastyczność
         "learning_rate": p.get("learning_rate", 0.01),
-
         # Wrażliwość na motywację i progi
         "motivation_sensitivity": p.get("motivation_sensitivity", 0.5),
         "threshold_sensitivity": p.get("threshold_sensitivity", 0.5),
-
         # System nagród
         "joy_gain": p.get("joy_gain", 0.05),
-        "motivation_gain_on_resolve": p.get("motivation_gain_on_resolve", 0.02),
-
+        "motivation_gain_on_resolve": p.get(
+            "motivation_gain_on_resolve", 0.02
+        ),
         # Zmęczenie / wypalenie
         "motivation_decay_per_sec": p.get("motivation_decay_per_sec", 0.0001),
-
         # Nowe geny
-        "calmness": p.get("calmness", 0.5),               # 0.0 = wybuchowy, 1.0 = zen
-        "curiosity_drive": p.get("curiosity_drive", 0.1), # nagroda za nowość
-        "motivation_memory": p.get("motivation_memory", 0.95),  # jak długo trzyma drive
+        "calmness": p.get("calmness", 0.5),  # 0.0 = wybuchowy, 1.0 = zen
+        "curiosity_drive": p.get("curiosity_drive", 0.1),  # nagroda za nowość
+        "motivation_memory": p.get(
+            "motivation_memory", 0.95
+        ),  # jak długo trzyma drive
     }
+
 
 def evaluate_symbiosis(strategy: Strategy, environment_data: list) -> float:
     """Fitness dla EvolutionEngine – średnia radość + ochrona przed exploitami."""

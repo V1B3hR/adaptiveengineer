@@ -8,33 +8,33 @@ from core.adaptive_defense import (
     ThreatType,
     ThreatEvent,
     DefenseAction,
-    HealingAction
+    HealingAction,
 )
 
 
 class TestAdaptiveDefenseSystem:
     """Test adaptive defense system."""
-    
+
     def test_system_creation(self):
         """Test creating adaptive defense system."""
         system = AdaptiveDefenseSystem(node_id=1)
         assert system.node_id == 1
         assert system.threats_detected == 0
-    
+
     def test_detect_threat(self):
         """Test threat detection."""
         system = AdaptiveDefenseSystem(node_id=1)
-        
+
         event = system.detect_threat(
             threat_type=ThreatType.DDOS,
             source="192.168.1.100",
             severity=0.8,
-            confidence=0.9
+            confidence=0.9,
         )
-        
+
         assert event is not None
         assert event.threat_type == ThreatType.DDOS
-    
+
     def test_get_metrics(self):
         """Test metrics retrieval."""
         system = AdaptiveDefenseSystem(node_id=1)
@@ -43,5 +43,5 @@ class TestAdaptiveDefenseSystem:
         assert "threats_detected" in metrics
 
 
-if __name__ == '__main__':
-    pytest.main([__file__, '-v'])
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
