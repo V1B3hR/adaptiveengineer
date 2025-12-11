@@ -7,6 +7,7 @@ range-aware mutation and similarity, RNG seeding, stats history, seeding APIs.
 
 Drop-in compatible with v3: same core classes and method names preserved, with safe extensions.
 """
+
 from __future__ import annotations
 
 import json
@@ -18,14 +19,21 @@ from dataclasses import dataclass, field, asdict
 from enum import Enum
 from typing import Any, Callable, Dict, Iterable, List, Optional, Tuple
 
-from concurrent.futures import ThreadPoolExecutor, as_completed, wait, FIRST_COMPLETED, Future, TimeoutError as FuturesTimeout
+from concurrent.futures import (
+    ThreadPoolExecutor,
+    as_completed,
+    wait,
+    FIRST_COMPLETED,
+    Future,
+    TimeoutError as FuturesTimeout,
+)
 
 logger = logging.getLogger(__name__)
 
 # Types
 ParameterRange = Tuple[float, float]
 ParameterRanges = Dict[str, ParameterRange]
-EvaluationFunction = Callable[['Strategy'], float]
+EvaluationFunction = Callable[["Strategy"], float]
 
 
 class StrategyType(str, Enum):
@@ -48,7 +56,9 @@ class Strategy:
     generation: int = 0
     parent_ids: List[str] = field(default_factory=list)
     uncle_aunt_ids: List[str] = field(default_factory=list)
-    birth_order: str = "singleton"  # singleton | older_brother | younger_sister
+    birth_order: str = (
+        "singleton"  # singleton | older_brother | younger_sister
+    )
     created_at: float = field(default_factory=time.time)
     evaluations: int = 0
 
@@ -58,13 +68,14 @@ class Strategy:
         mutation_strength: float = 0.1,
         rng=None,
         parameter_ranges: Optional[ParameterRanges] = None,
-    ) -> 'Strategy':
+    ) -> "Strategy":
         """
         Mutate parameters with Gaussian noise.
         - Range-aware: clamps to provided parameter_ranges per key (fallback 0..1 if absent).
         - Uses provided RNG (thread-safe random.Random) if given.
         """
         import random as _random
+
         R = rng or _random
         new_params: Dict[str, float] = {}
         for k, v in self.parameters.items():
@@ -91,21 +102,22 @@ class Strategy:
             parameters=new_params,
             generation=self.generation + 1,
             parent_ids=[self.strategy_id],
-            birth_order="singleton"
+            birth_order="singleton",
         )
 
     @staticmethod
     def family_crossover(
-        parents: List['Strategy'],
-        uncle_aunt: Optional[List['Strategy']] = None,
-        rng=None
-    ) -> Tuple['Strategy', 'Strategy']:
+        parents: List["Strategy"],
+        uncle_aunt: Optional[List["Strategy"]] = None,
+        rng=None,
+    ) -> Tuple["Strategy", "Strategy"]:
         """
         Multi-parent crossover with optional uncle/aunt contributions.
         Older brother: weighted draw favoring direct parents.
         Younger sister: uniform draw across all contributors.
         """
         import random as _random
+
         R = rng or _random
 
         uncle_aunt = uncle_aunt or []
@@ -121,7 +133,9 @@ class Strategy:
 
         for key in keys:
             sources = [s.parameters[key] for s in all_genes]
-            weights = [2 if i < len(parents) else 1 for i in range(len(sources))]
+            weights = [
+                2 if i < len(parents) else 1 for i in range(len(sources))
+            ]
             try:
                 older_params[key] = R.choices(sources, weights=weights, k=1)[0]  # type: ignore[attr-defined]
             except AttributeError:
@@ -147,7 +161,7 @@ class Strategy:
             generation=g,
             parent_ids=[p.strategy_id for p in parents],
             uncle_aunt_ids=[u.strategy_id for u in uncle_aunt],
-            birth_order="older_brother"
+            birth_order="older_brother",
         )
         younger = Strategy(
             strategy_id=str(uuid.uuid4()),
@@ -156,19 +170,19 @@ class Strategy:
             generation=g,
             parent_ids=[p.strategy_id for p in parents],
             uncle_aunt_ids=[u.strategy_id for u in uncle_aunt],
-            birth_order="younger_sister"
+            birth_order="younger_sister",
         )
         return older, younger
 
     def to_dict(self) -> Dict[str, Any]:
         d = asdict(self)
-        d['strategy_type'] = self.strategy_type.value
+        d["strategy_type"] = self.strategy_type.value
         return d
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'Strategy':
+    def from_dict(cls, data: Dict[str, Any]) -> "Strategy":
         data = data.copy()
-        data['strategy_type'] = StrategyType(data['strategy_type'])
+        data["strategy_type"] = StrategyType(data["strategy_type"])
         return cls(**data)
 
 
@@ -242,7 +256,9 @@ class EvolutionEngine:
 
     # ---------- Population management ----------
 
-    def initialize_population(self, strategy_type: StrategyType, parameter_ranges: ParameterRanges) -> None:
+    def initialize_population(
+        self, strategy_type: StrategyType, parameter_ranges: ParameterRanges
+    ) -> None:
         """
         Initialize a fresh population sampled uniformly from given parameter_ranges per key.
         """
@@ -251,8 +267,11 @@ class EvolutionEngine:
             Strategy(
                 strategy_id=str(uuid.uuid4()),
                 strategy_type=strategy_type,
-                parameters={k: self.rng.uniform(mi, ma) for k, (mi, ma) in parameter_ranges.items()},
-                generation=0
+                parameters={
+                    k: self.rng.uniform(mi, ma)
+                    for k, (mi, ma) in parameter_ranges.items()
+                },
+                generation=0,
             )
             for _ in range(self.population_size)
         ]
@@ -262,14 +281,20 @@ class EvolutionEngine:
         self._early_stopped[strategy_type] = False
         self.generation = 0
         self.save_population(strategy_type)
-        logger.info(f"Initialized {strategy_type.value} population ({self.population_size})")
+        logger.info(
+            f"Initialized {strategy_type.value} population ({self.population_size})"
+        )
 
-    def seed_population(self, strategy_type: StrategyType, seeds: Iterable[Dict[str, float]]) -> None:
+    def seed_population(
+        self, strategy_type: StrategyType, seeds: Iterable[Dict[str, float]]
+    ) -> None:
         """
         Seed the population with provided parameter dicts (filled up to population_size with randoms).
         """
         if strategy_type not in self.parameter_spaces:
-            raise ValueError("Initialize parameter ranges before seeding population.")
+            raise ValueError(
+                "Initialize parameter ranges before seeding population."
+            )
         param_ranges = self.parameter_spaces[strategy_type]
         seeded: List[Strategy] = []
         for p in seeds:
@@ -278,17 +303,26 @@ class EvolutionEngine:
                 v = p.get(k, self.rng.uniform(lo, hi))
                 v = max(lo, min(hi, float(v)))
                 params[k] = v
-            seeded.append(Strategy(strategy_id=str(uuid.uuid4()), strategy_type=strategy_type, parameters=params))
+            seeded.append(
+                Strategy(
+                    strategy_id=str(uuid.uuid4()),
+                    strategy_type=strategy_type,
+                    parameters=params,
+                )
+            )
         # Fill with randoms to population size
         while len(seeded) < self.population_size:
             seeded.append(
                 Strategy(
                     strategy_id=str(uuid.uuid4()),
                     strategy_type=strategy_type,
-                    parameters={k: self.rng.uniform(lo, hi) for k, (lo, hi) in param_ranges.items()},
+                    parameters={
+                        k: self.rng.uniform(lo, hi)
+                        for k, (lo, hi) in param_ranges.items()
+                    },
                 )
             )
-        self.populations[strategy_type] = seeded[:self.population_size]
+        self.populations[strategy_type] = seeded[: self.population_size]
         self.save_population(strategy_type)
 
     def get_population(self, strategy_type: StrategyType) -> List[Strategy]:
@@ -298,10 +332,15 @@ class EvolutionEngine:
 
     def _fingerprint(self, strategy: Strategy) -> str:
         # Stable fingerprint by sorted keys and rounded floats
-        items = tuple((k, round(float(v), 8)) for k, v in sorted(strategy.parameters.items()))
+        items = tuple(
+            (k, round(float(v), 8))
+            for k, v in sorted(strategy.parameters.items())
+        )
         return json.dumps(items)
 
-    def evaluate_fitness(self, strategy: Strategy, eval_fn: EvaluationFunction) -> float:
+    def evaluate_fitness(
+        self, strategy: Strategy, eval_fn: EvaluationFunction
+    ) -> float:
         """
         Evaluate a single strategy with caching.
         """
@@ -318,7 +357,9 @@ class EvolutionEngine:
         self._fitness_cache[fp] = strategy.fitness
         return strategy.fitness
 
-    def parallel_evaluate(self, population: List[Strategy], eval_fn: EvaluationFunction) -> None:
+    def parallel_evaluate(
+        self, population: List[Strategy], eval_fn: EvaluationFunction
+    ) -> None:
         """
         Evaluate strategies in parallel.
         - Skips cache hits.
@@ -326,7 +367,11 @@ class EvolutionEngine:
         - Retries failed/timeout items up to retry_failed_evals times.
         """
         # Determine which to evaluate (new or current-gen)
-        to_eval = [s for s in population if s.evaluations == 0 or s.generation == self.generation]
+        to_eval = [
+            s
+            for s in population
+            if s.evaluations == 0 or s.generation == self.generation
+        ]
 
         # Exclude cache hits upfront
         pending: List[Strategy] = []
@@ -346,7 +391,10 @@ class EvolutionEngine:
             attempts += 1
             failed: List[Strategy] = []
             with ThreadPoolExecutor(max_workers=self.max_workers) as ex:
-                future_map: Dict[Future, Strategy] = {ex.submit(self.evaluate_fitness, s, eval_fn): s for s in remaining}
+                future_map: Dict[Future, Strategy] = {
+                    ex.submit(self.evaluate_fitness, s, eval_fn): s
+                    for s in remaining
+                }
 
                 if self.timeout_seconds is None or self.timeout_seconds <= 0:
                     for fut in as_completed(future_map):
@@ -358,7 +406,11 @@ class EvolutionEngine:
                             failed.append(s)
                 else:
                     # Global batch timeout
-                    done, not_done = wait(set(future_map.keys()), timeout=self.timeout_seconds, return_when=FIRST_COMPLETED)
+                    done, not_done = wait(
+                        set(future_map.keys()),
+                        timeout=self.timeout_seconds,
+                        return_when=FIRST_COMPLETED,
+                    )
                     # Keep waiting until either all done or timeout window has elapsed
                     # We implement soft timeout: after first timeout window, we cancel any that still run.
                     # Gather results for done futures
@@ -377,7 +429,9 @@ class EvolutionEngine:
                             fut.cancel()
                         except Exception:
                             pass
-                        logger.warning(f"Eval timeout for {s.strategy_id} after {self.timeout_seconds}s")
+                        logger.warning(
+                            f"Eval timeout for {s.strategy_id} after {self.timeout_seconds}s"
+                        )
                         failed.append(s)
 
             # Prepare for retry loop
@@ -401,7 +455,11 @@ class EvolutionEngine:
 
     # ---------- Evolution ----------
 
-    def evolve_generation(self, strategy_type: StrategyType, evaluation_function: EvaluationFunction) -> Dict[str, Any]:
+    def evolve_generation(
+        self,
+        strategy_type: StrategyType,
+        evaluation_function: EvaluationFunction,
+    ) -> Dict[str, Any]:
         """
         Evolve population one generation:
         - Parallel evaluation with caching, timeout, retries.
@@ -417,10 +475,16 @@ class EvolutionEngine:
         if self._early_stopped.get(strategy_type):
             return {
                 "generation": self.generation,
-                "best_fitness": self.best_strategies.get(strategy_type, Strategy("", strategy_type, {})).fitness if strategy_type in self.best_strategies else None,
+                "best_fitness": (
+                    self.best_strategies.get(
+                        strategy_type, Strategy("", strategy_type, {})
+                    ).fitness
+                    if strategy_type in self.best_strategies
+                    else None
+                ),
                 "avg_fitness": None,
                 "early_stopped": True,
-                "reason": "early_stopping_triggered"
+                "reason": "early_stopping_triggered",
             }
 
         pop = self.populations[strategy_type]
@@ -436,7 +500,7 @@ class EvolutionEngine:
         prev_best = best_history[-1] if best_history else None
         best_history.append(best.fitness)
 
-        new_pop: List[Strategy] = pop[:self.elitism_count]
+        new_pop: List[Strategy] = pop[: self.elitism_count]
 
         # Breeding
         while len(new_pop) < self.population_size:
@@ -450,32 +514,51 @@ class EvolutionEngine:
                     p2 = self.tournament_selection(pop)
                     tries += 1
                 # Pick up to 2 uncles/aunts distinct from parents
-                candidates = [s for s in pop if s.strategy_id not in (p1.strategy_id, p2.strategy_id)]
-                uncles = self.rng.sample(candidates, k=min(2, len(candidates))) if candidates else []
-                older, younger = Strategy.family_crossover([p1, p2], uncles, rng=self.rng)
+                candidates = [
+                    s
+                    for s in pop
+                    if s.strategy_id not in (p1.strategy_id, p2.strategy_id)
+                ]
+                uncles = (
+                    self.rng.sample(candidates, k=min(2, len(candidates)))
+                    if candidates
+                    else []
+                )
+                older, younger = Strategy.family_crossover(
+                    [p1, p2], uncles, rng=self.rng
+                )
                 new_pop.extend([older, younger])
             else:
                 parent = self.tournament_selection(pop)
-                child = parent.mutate(self.mutation_rate, self.mutation_strength, rng=self.rng, parameter_ranges=param_ranges)
+                child = parent.mutate(
+                    self.mutation_rate,
+                    self.mutation_strength,
+                    rng=self.rng,
+                    parameter_ranges=param_ranges,
+                )
                 new_pop.append(child)
 
         # Diversity preservation
         self.maintain_diversity(new_pop, param_ranges)
 
         # Trim to correct size
-        self.populations[strategy_type] = new_pop[:self.population_size]
+        self.populations[strategy_type] = new_pop[: self.population_size]
         self.generation += 1
 
         # Adaptive mutation rate based on similarity and improvement
         if self.adaptive_mutation:
-            avg_sim = self._average_similarity(self.populations[strategy_type], param_ranges)
+            avg_sim = self._average_similarity(
+                self.populations[strategy_type], param_ranges
+            )
             improved = prev_best is None or (best.fitness > prev_best + 1e-12)
             # If no improvement and population is too similar -> increase mutation
             if not improved and avg_sim > 0.95:
                 self.mutation_rate = min(0.5, self.mutation_rate * 1.25 + 0.01)
             # If improving and diverse -> gently reduce mutation
             elif improved and avg_sim < 0.85:
-                self.mutation_rate = max(self.base_mutation_rate * 0.5, self.mutation_rate * 0.9)
+                self.mutation_rate = max(
+                    self.base_mutation_rate * 0.5, self.mutation_rate * 0.9
+                )
             # Bound mutation rate
             self.mutation_rate = float(max(1e-4, min(0.9, self.mutation_rate)))
 
@@ -487,7 +570,11 @@ class EvolutionEngine:
         # Stats
         fits = [s.fitness for s in self.populations[strategy_type]]
         avg = sum(fits) / len(fits) if fits else float("nan")
-        variance = sum((f - avg) ** 2 for f in fits) / len(fits) if fits else float("nan")
+        variance = (
+            sum((f - avg) ** 2 for f in fits) / len(fits)
+            if fits
+            else float("nan")
+        )
 
         stats = {
             "generation": self.generation,
@@ -498,20 +585,31 @@ class EvolutionEngine:
             "best_id": best.strategy_id,
             "population_size": len(self.populations[strategy_type]),
             "mutation_rate": self.mutation_rate,
-            "avg_similarity": self._average_similarity(self.populations[strategy_type], param_ranges),
+            "avg_similarity": self._average_similarity(
+                self.populations[strategy_type], param_ranges
+            ),
         }
 
         # Early stopping checks
         stop_reason: Optional[str] = None
-        if self.target_fitness is not None and best.fitness >= self.target_fitness:
+        if (
+            self.target_fitness is not None
+            and best.fitness >= self.target_fitness
+        ):
             stop_reason = "target_fitness_reached"
         else:
             # Improvement tracking
             if prev_best is None or best.fitness > (prev_best + 1e-12):
                 self._no_improve_rounds[strategy_type] = 0
             else:
-                self._no_improve_rounds[strategy_type] = self._no_improve_rounds.get(strategy_type, 0) + 1
-                if self.early_stopping_rounds is not None and self._no_improve_rounds[strategy_type] >= self.early_stopping_rounds:
+                self._no_improve_rounds[strategy_type] = (
+                    self._no_improve_rounds.get(strategy_type, 0) + 1
+                )
+                if (
+                    self.early_stopping_rounds is not None
+                    and self._no_improve_rounds[strategy_type]
+                    >= self.early_stopping_rounds
+                ):
                     stop_reason = "early_stopping_no_improvement"
 
         if stop_reason:
@@ -519,33 +617,43 @@ class EvolutionEngine:
             stats["early_stopped"] = True
             stats["reason"] = stop_reason
 
-        logger.debug(f"Gen {self.generation} {strategy_type.value}: best={stats['best_fitness']:.6f} avg={stats['avg_fitness']:.6f} "
-                     f"mut={self.mutation_rate:.4f} sim={stats['avg_similarity']:.4f}")
+        logger.debug(
+            f"Gen {self.generation} {strategy_type.value}: best={stats['best_fitness']:.6f} avg={stats['avg_fitness']:.6f} "
+            f"mut={self.mutation_rate:.4f} sim={stats['avg_similarity']:.4f}"
+        )
         return stats
 
     # ---------- Diversity ----------
 
-    def maintain_diversity(self, pop: List[Strategy], param_ranges: ParameterRanges) -> None:
+    def maintain_diversity(
+        self, pop: List[Strategy], param_ranges: ParameterRanges
+    ) -> None:
         """
         Keep only sufficiently dissimilar high-fitness individuals.
         Range-aware cosine similarity thresholding with refill by mutation.
         """
         unique: List[Strategy] = []
         for s in sorted(pop, key=lambda x: x.fitness, reverse=True):
-            if not any(self._similarity(s, u, param_ranges) > 0.95 for u in unique):
+            if not any(
+                self._similarity(s, u, param_ranges) > 0.95 for u in unique
+            ):
                 unique.append(s)
         # If we lost too many, refill by mutating elite with stronger noise
         while len(unique) < self.population_size:
             base = self.rng.choice(unique) if unique else self.rng.choice(pop)
-            unique.append(base.mutate(
-                mutation_rate=min(1.0, max(0.2, self.mutation_rate * 1.5)),
-                mutation_strength=min(1.0, self.mutation_strength * 1.5),
-                rng=self.rng,
-                parameter_ranges=param_ranges
-            ))
-        pop[:] = unique[:self.population_size]
+            unique.append(
+                base.mutate(
+                    mutation_rate=min(1.0, max(0.2, self.mutation_rate * 1.5)),
+                    mutation_strength=min(1.0, self.mutation_strength * 1.5),
+                    rng=self.rng,
+                    parameter_ranges=param_ranges,
+                )
+            )
+        pop[:] = unique[: self.population_size]
 
-    def _normalize_vector(self, params: Dict[str, float], param_ranges: ParameterRanges) -> List[float]:
+    def _normalize_vector(
+        self, params: Dict[str, float], param_ranges: ParameterRanges
+    ) -> List[float]:
         vec: List[float] = []
         for k in sorted(params.keys()):
             v = params[k]
@@ -559,14 +667,18 @@ class EvolutionEngine:
             vec.append(float(nv))
         return vec
 
-    def _similarity(self, s1: Strategy, s2: Strategy, param_ranges: ParameterRanges) -> float:
+    def _similarity(
+        self, s1: Strategy, s2: Strategy, param_ranges: ParameterRanges
+    ) -> float:
         v1 = self._normalize_vector(s1.parameters, param_ranges)
         v2 = self._normalize_vector(s2.parameters, param_ranges)
         dot = sum(a * b for a, b in zip(v1, v2))
         mag = (sum(a * a for a in v1) ** 0.5) * (sum(b * b for b in v2) ** 0.5)
         return dot / (mag + 1e-12) if mag > 0 else 0.0
 
-    def _average_similarity(self, pop: List[Strategy], param_ranges: ParameterRanges) -> float:
+    def _average_similarity(
+        self, pop: List[Strategy], param_ranges: ParameterRanges
+    ) -> float:
         n = len(pop)
         if n < 2:
             return 0.0
@@ -590,7 +702,9 @@ class EvolutionEngine:
 
     # ---------- Best ----------
 
-    def get_best_strategy(self, strategy_type: StrategyType) -> Optional[Strategy]:
+    def get_best_strategy(
+        self, strategy_type: StrategyType
+    ) -> Optional[Strategy]:
         return self.best_strategies.get(strategy_type)
 
     # ---------- Persistence ----------
@@ -608,10 +722,16 @@ class EvolutionEngine:
         - populations/{type}_meta.json: engine + generation metadata
         - populations/{type}_stats.jsonl: per-generation stats append-only
         """
-        pop_path = os.path.join(self.persistence_dir, f"{strategy_type.value}_pop.json")
-        meta_path = os.path.join(self.persistence_dir, f"{strategy_type.value}_meta.json")
+        pop_path = os.path.join(
+            self.persistence_dir, f"{strategy_type.value}_pop.json"
+        )
+        meta_path = os.path.join(
+            self.persistence_dir, f"{strategy_type.value}_meta.json"
+        )
 
-        pop_payload = json.dumps([s.to_dict() for s in self.populations[strategy_type]], indent=2)
+        pop_payload = json.dumps(
+            [s.to_dict() for s in self.populations[strategy_type]], indent=2
+        )
         self._atomic_write(pop_path, pop_payload)
 
         meta = {
@@ -628,10 +748,16 @@ class EvolutionEngine:
             "parameter_ranges": self.parameter_spaces.get(strategy_type, {}),
         }
         self._atomic_write(meta_path, json.dumps(meta, indent=2))
-        logger.debug(f"Saved population & meta for {strategy_type.value} at gen {self.generation}")
+        logger.debug(
+            f"Saved population & meta for {strategy_type.value} at gen {self.generation}"
+        )
 
-    def _append_stats(self, strategy_type: StrategyType, pop: List[Strategy]) -> None:
-        stats_path = os.path.join(self.persistence_dir, f"{strategy_type.value}_stats.jsonl")
+    def _append_stats(
+        self, strategy_type: StrategyType, pop: List[Strategy]
+    ) -> None:
+        stats_path = os.path.join(
+            self.persistence_dir, f"{strategy_type.value}_stats.jsonl"
+        )
         fits = [s.fitness for s in pop]
         if not fits:
             return
@@ -656,8 +782,12 @@ class EvolutionEngine:
         Load population if present; restores generation from max(strategy.generation)
         and parameter ranges from meta if available.
         """
-        pop_path = os.path.join(self.persistence_dir, f"{strategy_type.value}_pop.json")
-        meta_path = os.path.join(self.persistence_dir, f"{strategy_type.value}_meta.json")
+        pop_path = os.path.join(
+            self.persistence_dir, f"{strategy_type.value}_pop.json"
+        )
+        meta_path = os.path.join(
+            self.persistence_dir, f"{strategy_type.value}_meta.json"
+        )
         if not os.path.exists(pop_path):
             return False
         with open(pop_path, "r", encoding="utf-8") as f:
@@ -672,12 +802,20 @@ class EvolutionEngine:
                     # ensure tuple ranges
                     self.parameter_spaces[strategy_type] = {k: tuple(v) for k, v in pr.items()}  # type: ignore[assignment]
         except Exception as e:  # noqa: BLE001
-            logger.warning(f"Failed to load meta for {strategy_type.value}: {e}")
+            logger.warning(
+                f"Failed to load meta for {strategy_type.value}: {e}"
+            )
 
-        self.generation = max((s.generation for s in self.populations[strategy_type]), default=0)
+        self.generation = max(
+            (s.generation for s in self.populations[strategy_type]), default=0
+        )
         # Rebuild best tracker
         if self.populations[strategy_type]:
-            best = max(self.populations[strategy_type], key=lambda s: s.fitness)
+            best = max(
+                self.populations[strategy_type], key=lambda s: s.fitness
+            )
             self.best_strategies[strategy_type] = best
-        logger.info(f"Loaded {strategy_type.value} population from {pop_path} at gen {self.generation}")
+        logger.info(
+            f"Loaded {strategy_type.value} population from {pop_path} at gen {self.generation}"
+        )
         return True

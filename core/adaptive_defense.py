@@ -32,11 +32,12 @@ from typing import Any, Callable, Dict, List, Optional, Set, Tuple
 from collections import deque
 from uuid import uuid4
 
-logger = logging.getLogger('adaptive_defense')
+logger = logging.getLogger("adaptive_defense")
 
 
 class ThreatType(str, Enum):
     """Types of threats"""
+
     MALWARE = "malware"
     DDOS = "ddos"
     INTRUSION = "intrusion"
@@ -48,6 +49,7 @@ class ThreatType(str, Enum):
 
 class DefenseAction(str, Enum):
     """Automated defense actions"""
+
     BLOCK_IP = "block_ip"
     BLOCK_PROCESS = "block_process"
     RESTART_SERVICE = "restart_service"
@@ -60,6 +62,7 @@ class DefenseAction(str, Enum):
 
 class HealingAction(str, Enum):
     """Self-healing actions"""
+
     ROLLBACK = "rollback"
     QUARANTINE = "quarantine"
     CONFIG_ADJUST = "config_adjust"
@@ -86,6 +89,7 @@ def _clamp01(value: float) -> float:
 @dataclass
 class ThreatEvent:
     """Record of a detected threat"""
+
     event_id: str
     timestamp: float
     threat_type: ThreatType
@@ -106,6 +110,7 @@ class ThreatEvent:
 @dataclass
 class DefenseResponse:
     """Record of a defense action taken"""
+
     response_id: str
     timestamp: float
     threat_event_id: str
@@ -178,7 +183,9 @@ class AdaptiveDefenseSystem:
         default_cooldown_seconds: float = 30.0,
         per_action_cooldowns: Optional[Dict[DefenseAction, float]] = None,
         maintenance_quiet_hours_utc: Optional[List[Tuple[int, int]]] = None,
-        per_threat_response_thresholds: Optional[Dict[ThreatType, float]] = None,
+        per_threat_response_thresholds: Optional[
+            Dict[ThreatType, float]
+        ] = None,
     ):
         """
         Initialize adaptive defense system.
@@ -240,8 +247,12 @@ class AdaptiveDefenseSystem:
 
         # Cooldowns
         self.default_cooldown_seconds = max(0.0, default_cooldown_seconds)
-        self.per_action_cooldowns: Dict[DefenseAction, float] = per_action_cooldowns or {}
-        self._last_action_time_by_key: Dict[Tuple[DefenseAction, str], float] = {}
+        self.per_action_cooldowns: Dict[DefenseAction, float] = (
+            per_action_cooldowns or {}
+        )
+        self._last_action_time_by_key: Dict[
+            Tuple[DefenseAction, str], float
+        ] = {}
 
         # Quiet hours for auto response
         self.maintenance_quiet_hours_utc = maintenance_quiet_hours_utc or []
@@ -252,13 +263,18 @@ class AdaptiveDefenseSystem:
         logger.info(
             "Adaptive defense system initialized for node %s "
             "(auto_response=%s, default_threshold=%.2f, dry_run=%s)",
-            node_id, auto_response_enabled, self.response_threshold, dry_run
+            node_id,
+            auto_response_enabled,
+            self.response_threshold,
+            dry_run,
         )
 
     # ---------------------------
     # Registration and utilities
     # ---------------------------
-    def register_action_handler(self, action: DefenseAction, handler: ActionHandler):
+    def register_action_handler(
+        self, action: DefenseAction, handler: ActionHandler
+    ):
         """Register or override a handler for a specific defense action."""
         with self._lock:
             self._action_handlers[action] = handler
@@ -283,7 +299,9 @@ class AdaptiveDefenseSystem:
         """Apply cooldown-based dedup to avoid repeated actions on the same target."""
         now = _ts()
         key = (action, target)
-        cooldown = self.per_action_cooldowns.get(action, self.default_cooldown_seconds)
+        cooldown = self.per_action_cooldowns.get(
+            action, self.default_cooldown_seconds
+        )
         last = self._last_action_time_by_key.get(key, 0.0)
         if now - last < cooldown:
             return True
@@ -293,15 +311,24 @@ class AdaptiveDefenseSystem:
     def _audit_json(self, payload: Dict[str, Any]):
         """Write structured audit event to logger and/or file."""
         if self.audit_all:
-            logger.info("Audit: %s", json.dumps(payload, ensure_ascii=False, sort_keys=True))
+            logger.info(
+                "Audit: %s",
+                json.dumps(payload, ensure_ascii=False, sort_keys=True),
+            )
         if self.audit_file:
             try:
-                Path(os.path.dirname(self.audit_file) or ".").mkdir(parents=True, exist_ok=True)
+                Path(os.path.dirname(self.audit_file) or ".").mkdir(
+                    parents=True, exist_ok=True
+                )
                 with open(self.audit_file, "a", encoding="utf-8") as f:
-                    f.write(json.dumps(payload, ensure_ascii=False, sort_keys=True))
+                    f.write(
+                        json.dumps(payload, ensure_ascii=False, sort_keys=True)
+                    )
                     f.write("\n")
             except Exception as e:
-                logger.error("Failed to write audit file %s: %s", self.audit_file, e)
+                logger.error(
+                    "Failed to write audit file %s: %s", self.audit_file, e
+                )
 
     # ---------------------------
     # Threats
@@ -312,7 +339,7 @@ class AdaptiveDefenseSystem:
         source: str,
         severity: float,
         confidence: float,
-        indicators: Optional[Dict[str, Any]] = None
+        indicators: Optional[Dict[str, Any]] = None,
     ) -> ThreatEvent:
         """
         Detect and record a threat.
@@ -338,7 +365,7 @@ class AdaptiveDefenseSystem:
             severity=severity,
             source=source,
             confidence=confidence,
-            indicators=indicators or {}
+            indicators=indicators or {},
         )
 
         with self._lock:
@@ -347,25 +374,35 @@ class AdaptiveDefenseSystem:
 
         logger.warning(
             "Threat detected: %s from %s (severity=%.2f, confidence=%.2f)",
-            threat_type, source, severity, confidence
+            threat_type,
+            source,
+            severity,
+            confidence,
         )
 
-        self._audit_json({
-            "type": "threat_detected",
-            "node_id": self.node_id,
-            "event": event.to_dict(),
-        })
+        self._audit_json(
+            {
+                "type": "threat_detected",
+                "node_id": self.node_id,
+                "event": event.to_dict(),
+            }
+        )
 
         # Automatic response if enabled, not in quiet time, and confidence high enough
-        threshold = self.response_thresholds.get(threat_type, self.response_threshold)
-        if self.auto_response_enabled and not self._is_quiet_time() and confidence >= threshold:
+        threshold = self.response_thresholds.get(
+            threat_type, self.response_threshold
+        )
+        if (
+            self.auto_response_enabled
+            and not self._is_quiet_time()
+            and confidence >= threshold
+        ):
             self.respond_to_threat(event)
 
         return event
 
     def respond_to_threat(
-        self,
-        threat_event: ThreatEvent
+        self, threat_event: ThreatEvent
     ) -> Optional[DefenseResponse]:
         """
         Automatically respond to a detected threat.
@@ -378,24 +415,31 @@ class AdaptiveDefenseSystem:
         """
         with self._lock:
             if threat_event.responded:
-                logger.debug("Threat %s already responded to", threat_event.event_id)
+                logger.debug(
+                    "Threat %s already responded to", threat_event.event_id
+                )
                 return None
 
         # Determine appropriate defense action
         action = self._select_defense_action(threat_event)
         if not action:
-            logger.info("No action selected for threat %s", threat_event.event_id)
+            logger.info(
+                "No action selected for threat %s", threat_event.event_id
+            )
             return None
 
         # Dedup via cooldown
         if self._should_dedup(action, threat_event.source):
             logger.info(
                 "Suppressed repeated action %s for target %s due to cooldown",
-                action, threat_event.source
+                action,
+                threat_event.source,
             )
             return None
 
-        response_id = f"response_{self.node_id}_{int(_ts()*1000)}_{uuid4().hex[:8]}"
+        response_id = (
+            f"response_{self.node_id}_{int(_ts()*1000)}_{uuid4().hex[:8]}"
+        )
 
         # Record metrics before action
         metrics_before = self._get_current_metrics()
@@ -418,7 +462,7 @@ class AdaptiveDefenseSystem:
             confidence=threat_event.confidence,
             metrics_before=metrics_before,
             metrics_after=metrics_after,
-            audit_trail=audit_log
+            audit_trail=audit_log,
         )
 
         with self._lock:
@@ -427,22 +471,31 @@ class AdaptiveDefenseSystem:
             if success:
                 self.threats_blocked += 1
 
-        self._audit_json({
-            "type": "defense_response",
-            "node_id": self.node_id,
-            "response": response.to_dict(),
-        })
+        self._audit_json(
+            {
+                "type": "defense_response",
+                "node_id": self.node_id,
+                "response": response.to_dict(),
+            }
+        )
 
         if success:
-            logger.info("Successfully responded to threat with %s: %s", action, threat_event.source)
+            logger.info(
+                "Successfully responded to threat with %s: %s",
+                action,
+                threat_event.source,
+            )
         else:
-            logger.warning("Failed to respond to threat with %s: %s", action, threat_event.source)
+            logger.warning(
+                "Failed to respond to threat with %s: %s",
+                action,
+                threat_event.source,
+            )
 
         return response
 
     def _select_defense_action(
-        self,
-        threat_event: ThreatEvent
+        self, threat_event: ThreatEvent
     ) -> Optional[DefenseAction]:
         """Select appropriate defense action for threat type"""
         action_map = {
@@ -452,15 +505,12 @@ class AdaptiveDefenseSystem:
             ThreatType.DATA_EXFILTRATION: DefenseAction.BLOCK_PROCESS,
             ThreatType.PRIVILEGE_ESCALATION: DefenseAction.ISOLATE_SEGMENT,
             ThreatType.BRUTE_FORCE: DefenseAction.RATE_LIMIT,
-            ThreatType.ANOMALY: DefenseAction.QUARANTINE
+            ThreatType.ANOMALY: DefenseAction.QUARANTINE,
         }
         return action_map.get(threat_event.threat_type)
 
     def _execute_defense_action(
-        self,
-        action: DefenseAction,
-        target: str,
-        threat_event: ThreatEvent
+        self, action: DefenseAction, target: str, threat_event: ThreatEvent
     ) -> Tuple[bool, List[str]]:
         """
         Execute a defense action.
@@ -470,7 +520,9 @@ class AdaptiveDefenseSystem:
         """
         audit_log: List[str] = []
         audit_log.append(f"Action: {action} on target: {target}")
-        audit_log.append(f"Threat: {threat_event.threat_type}, Severity: {threat_event.severity:.2f}")
+        audit_log.append(
+            f"Threat: {threat_event.threat_type}, Severity: {threat_event.severity:.2f}"
+        )
         audit_log.append(f"Timestamp: {_ts()}")
 
         # Use custom handler if registered
@@ -509,7 +561,9 @@ class AdaptiveDefenseSystem:
 
                 elif action == DefenseAction.ROLLBACK_CONFIG:
                     success = self._rollback_configuration(target)
-                    audit_log.append(f"Rolled back configuration for: {target}")
+                    audit_log.append(
+                        f"Rolled back configuration for: {target}"
+                    )
 
                 elif action == DefenseAction.RATE_LIMIT:
                     audit_log.append(f"Applied rate limiting to: {target}")
@@ -544,14 +598,14 @@ class AdaptiveDefenseSystem:
         """Get current system metrics"""
         with self._lock:
             metrics = {
-                'blocked_ips_count': len(self.blocked_ips),
-                'blocked_processes_count': len(self.blocked_processes),
-                'quarantined_count': len(self.quarantined_items),
-                'threats_detected': self.threats_detected,
-                'threats_blocked': self.threats_blocked,
-                'false_positives': self.false_positives,
+                "blocked_ips_count": len(self.blocked_ips),
+                "blocked_processes_count": len(self.blocked_processes),
+                "quarantined_count": len(self.quarantined_items),
+                "threats_detected": self.threats_detected,
+                "threats_blocked": self.threats_blocked,
+                "false_positives": self.false_positives,
             }
-        metrics['timestamp'] = _ts()
+        metrics["timestamp"] = _ts()
         return metrics
 
     def get_defense_metrics(self) -> Dict[str, Any]:
@@ -563,10 +617,16 @@ class AdaptiveDefenseSystem:
         """
         now = _ts()
         with self._lock:
-            recent_threats = len([t for t in self.threat_events if now - t.timestamp < 300])
-            recent_blocks = len([
-                r for r in self.defense_responses if now - r.timestamp < 300 and r.success
-            ])
+            recent_threats = len(
+                [t for t in self.threat_events if now - t.timestamp < 300]
+            )
+            recent_blocks = len(
+                [
+                    r
+                    for r in self.defense_responses
+                    if now - r.timestamp < 300 and r.success
+                ]
+            )
             threats_blocked = self.threats_blocked
             threats_detected = self.threats_detected
             false_positives = self.false_positives
@@ -575,23 +635,27 @@ class AdaptiveDefenseSystem:
             blocked_processes = len(self.blocked_processes)
             quarantined_items = len(self.quarantined_items)
 
-        block_rate = (threats_blocked / threats_detected) if threats_detected > 0 else 0.0
+        block_rate = (
+            (threats_blocked / threats_detected)
+            if threats_detected > 0
+            else 0.0
+        )
 
         return {
-            'node_id': self.node_id,
-            'threats_detected': threats_detected,
-            'threats_blocked': threats_blocked,
-            'block_rate': block_rate,
-            'false_positives': false_positives,
-            'healings_performed': healings_performed,
-            'blocked_ips': blocked_ips,
-            'blocked_processes': blocked_processes,
-            'quarantined_items': quarantined_items,
-            'recent_threats_5min': recent_threats,
-            'recent_blocks_5min': recent_blocks,
-            'auto_response_enabled': self.auto_response_enabled,
-            'dry_run': self.dry_run,
-            'timestamp': now,
+            "node_id": self.node_id,
+            "threats_detected": threats_detected,
+            "threats_blocked": threats_blocked,
+            "block_rate": block_rate,
+            "false_positives": false_positives,
+            "healings_performed": healings_performed,
+            "blocked_ips": blocked_ips,
+            "blocked_processes": blocked_processes,
+            "quarantined_items": quarantined_items,
+            "recent_threats_5min": recent_threats,
+            "recent_blocks_5min": recent_blocks,
+            "auto_response_enabled": self.auto_response_enabled,
+            "dry_run": self.dry_run,
+            "timestamp": now,
         }
 
     def export_metrics_prometheus(self) -> str:
@@ -622,9 +686,7 @@ class AdaptiveDefenseSystem:
         return "\n".join(lines) + "\n"
 
     def get_audit_log(
-        self,
-        limit: int = 50,
-        action_type: Optional[Any] = None
+        self, limit: int = 50, action_type: Optional[Any] = None
     ) -> List[Dict[str, Any]]:
         """
         Get audit log of defense and healing actions.
@@ -636,6 +698,7 @@ class AdaptiveDefenseSystem:
         Returns:
             List of audit entries (newest first)
         """
+
         def _match_action(a: Any, action_type: Any) -> bool:
             if action_type is None:
                 return True
@@ -649,42 +712,43 @@ class AdaptiveDefenseSystem:
             for response in list(self.defense_responses)[-limit:]:
                 if not _match_action(response.action, action_type):
                     continue
-                entries.append({
-                    'type': 'defense_response',
-                    'response_id': response.response_id,
-                    'timestamp': response.timestamp,
-                    'action': response.action,
-                    'target': response.target,
-                    'success': response.success,
-                    'audit_trail': response.audit_trail
-                })
+                entries.append(
+                    {
+                        "type": "defense_response",
+                        "response_id": response.response_id,
+                        "timestamp": response.timestamp,
+                        "action": response.action,
+                        "target": response.target,
+                        "success": response.success,
+                        "audit_trail": response.audit_trail,
+                    }
+                )
 
             for response in list(self.healing_responses)[-limit:]:
                 if not _match_action(response.healing_action, action_type):
                     continue
-                entries.append({
-                    'type': 'healing_response',
-                    'response_id': response.response_id,
-                    'timestamp': response.timestamp,
-                    'action': response.healing_action,
-                    'target': response.target,
-                    'success': response.success,
-                    'recovery_time': response.recovery_time,
-                    'audit_trail': response.audit_trail
-                })
+                entries.append(
+                    {
+                        "type": "healing_response",
+                        "response_id": response.response_id,
+                        "timestamp": response.timestamp,
+                        "action": response.healing_action,
+                        "target": response.target,
+                        "success": response.success,
+                        "recovery_time": response.recovery_time,
+                        "audit_trail": response.audit_trail,
+                    }
+                )
 
         # Sort by timestamp desc
-        entries.sort(key=lambda x: x['timestamp'], reverse=True)
+        entries.sort(key=lambda x: x["timestamp"], reverse=True)
         return entries[:limit]
 
     # ---------------------------
     # Healing
     # ---------------------------
     def heal_system(
-        self,
-        healing_action: HealingAction,
-        target: str,
-        reason: str
+        self, healing_action: HealingAction, target: str, reason: str
     ) -> HealingResponse:
         """
         Perform self-healing action.
@@ -697,7 +761,9 @@ class AdaptiveDefenseSystem:
         Returns:
             HealingResponse record
         """
-        response_id = f"heal_{self.node_id}_{int(_ts()*1000)}_{uuid4().hex[:8]}"
+        response_id = (
+            f"heal_{self.node_id}_{int(_ts()*1000)}_{uuid4().hex[:8]}"
+        )
         start_time = _ts()
 
         audit_log: List[str] = []
@@ -765,11 +831,13 @@ class AdaptiveDefenseSystem:
         if self.audit_all:
             logger.info("Healing audit: %s", " | ".join(audit_log))
 
-        self._audit_json({
-            "type": "healing_response",
-            "node_id": self.node_id,
-            "response": response.to_dict(),
-        })
+        self._audit_json(
+            {
+                "type": "healing_response",
+                "node_id": self.node_id,
+                "response": response.to_dict(),
+            }
+        )
 
         if success:
             logger.info("Healing successful: %s on %s", healing_action, target)
@@ -785,7 +853,9 @@ class AdaptiveDefenseSystem:
         """Rollback configuration to previous state"""
         with self._lock:
             if len(self.config_history) == 0:
-                logger.warning("No configuration history available for %s", target)
+                logger.warning(
+                    "No configuration history available for %s", target
+                )
                 return False
             # Get previous config
             previous_config = self.config_history.pop()
@@ -797,28 +867,32 @@ class AdaptiveDefenseSystem:
     def _adjust_configuration(self, target: str, reason: str) -> bool:
         """Adjust configuration based on threat/issue"""
         adjustment_map = {
-            'rate_limiting': {'max_requests': 100, 'window': 60},
-            'firewall': {'default_deny': True, 'log_all': True},
-            'access_control': {'strict_mode': True}
+            "rate_limiting": {"max_requests": 100, "window": 60},
+            "firewall": {"default_deny": True, "log_all": True},
+            "access_control": {"strict_mode": True},
         }
         with self._lock:
             # Save current config
             self.config_history.append(self.current_config.copy())
             if target in adjustment_map:
                 self.current_config[target] = adjustment_map[target]
-                logger.info("Adjusted configuration for %s: %s", target, adjustment_map[target])
+                logger.info(
+                    "Adjusted configuration for %s: %s",
+                    target,
+                    adjustment_map[target],
+                )
                 return True
-        logger.info("No predefined config adjustment for %s (reason: %s)", target, reason)
+        logger.info(
+            "No predefined config adjustment for %s (reason: %s)",
+            target,
+            reason,
+        )
         return False
 
     # ---------------------------
     # Adaptation and controls
     # ---------------------------
-    def adapt_thresholds(
-        self,
-        threat_type: ThreatType,
-        feedback: str
-    ):
+    def adapt_thresholds(self, threat_type: ThreatType, feedback: str):
         """
         Adapt detection thresholds based on feedback.
 
@@ -828,9 +902,11 @@ class AdaptiveDefenseSystem:
         """
         with self._lock:
             current_detect = self.threat_thresholds[threat_type]
-            current_response = self.response_thresholds.get(threat_type, self.response_threshold)
+            current_response = self.response_thresholds.get(
+                threat_type, self.response_threshold
+            )
 
-            if feedback == 'false_positive':
+            if feedback == "false_positive":
                 # Increase thresholds to be more conservative
                 new_detect = min(1.0, current_detect + 0.05)
                 new_response = min(1.0, current_response + 0.05)
@@ -839,10 +915,14 @@ class AdaptiveDefenseSystem:
                 self.false_positives += 1
                 logger.info(
                     "Adapted %s thresholds detect: %.2f → %.2f, response: %.2f → %.2f (reduce FP)",
-                    threat_type, current_detect, new_detect, current_response, new_response
+                    threat_type,
+                    current_detect,
+                    new_detect,
+                    current_response,
+                    new_response,
                 )
 
-            elif feedback == 'false_negative':
+            elif feedback == "false_negative":
                 # Decrease thresholds to be more sensitive
                 new_detect = max(0.1, current_detect - 0.05)
                 new_response = max(0.1, current_response - 0.05)
@@ -850,7 +930,11 @@ class AdaptiveDefenseSystem:
                 self.response_thresholds[threat_type] = new_response
                 logger.info(
                     "Adapted %s thresholds detect: %.2f → %.2f, response: %.2f → %.2f (reduce FN)",
-                    threat_type, current_detect, new_detect, current_response, new_response
+                    threat_type,
+                    current_detect,
+                    new_detect,
+                    current_response,
+                    new_response,
                 )
 
             # true_positive: hold steady
@@ -861,13 +945,15 @@ class AdaptiveDefenseSystem:
             if ip in self.blocked_ips:
                 self.blocked_ips.remove(ip)
                 logger.info("Unblocked IP %s: %s", ip, reason)
-                self._audit_json({
-                    "type": "unblock_ip",
-                    "node_id": self.node_id,
-                    "ip": ip,
-                    "reason": reason,
-                    "ts": _ts(),
-                })
+                self._audit_json(
+                    {
+                        "type": "unblock_ip",
+                        "node_id": self.node_id,
+                        "ip": ip,
+                        "reason": reason,
+                        "ts": _ts(),
+                    }
+                )
 
     def unblock_process(self, process: str, reason: str = "Manual unblock"):
         """Manually unblock a process"""
@@ -875,13 +961,15 @@ class AdaptiveDefenseSystem:
             if process in self.blocked_processes:
                 self.blocked_processes.remove(process)
                 logger.info("Unblocked process %s: %s", process, reason)
-                self._audit_json({
-                    "type": "unblock_process",
-                    "node_id": self.node_id,
-                    "process": process,
-                    "reason": reason,
-                    "ts": _ts(),
-                })
+                self._audit_json(
+                    {
+                        "type": "unblock_process",
+                        "node_id": self.node_id,
+                        "process": process,
+                        "reason": reason,
+                        "ts": _ts(),
+                    }
+                )
 
     def unquarantine(self, target: str, reason: str = "Manual unquarantine"):
         """Remove an item from quarantine."""
@@ -889,13 +977,15 @@ class AdaptiveDefenseSystem:
             if target in self.quarantined_items:
                 self.quarantined_items.remove(target)
                 logger.info("Unquarantined %s: %s", target, reason)
-                self._audit_json({
-                    "type": "unquarantine",
-                    "node_id": self.node_id,
-                    "target": target,
-                    "reason": reason,
-                    "ts": _ts(),
-                })
+                self._audit_json(
+                    {
+                        "type": "unquarantine",
+                        "node_id": self.node_id,
+                        "target": target,
+                        "reason": reason,
+                        "ts": _ts(),
+                    }
+                )
 
     def clear_blocklists(self, reason: str = "Manual clear"):
         """Clear all blocklists and quarantine."""
@@ -904,12 +994,14 @@ class AdaptiveDefenseSystem:
             self.blocked_processes.clear()
             self.quarantined_items.clear()
         logger.info("Cleared blocklists/quarantine: %s", reason)
-        self._audit_json({
-            "type": "clear_blocklists",
-            "node_id": self.node_id,
-            "reason": reason,
-            "ts": _ts(),
-        })
+        self._audit_json(
+            {
+                "type": "clear_blocklists",
+                "node_id": self.node_id,
+                "reason": reason,
+                "ts": _ts(),
+            }
+        )
 
     # ---------------------------
     # Persistence
@@ -923,8 +1015,12 @@ class AdaptiveDefenseSystem:
                 "blocked_processes": sorted(self.blocked_processes),
                 "quarantined_items": sorted(self.quarantined_items),
                 "current_config": self.current_config,
-                "threat_thresholds": {k.value: v for k, v in self.threat_thresholds.items()},
-                "response_thresholds": {k.value: v for k, v in self.response_thresholds.items()},
+                "threat_thresholds": {
+                    k.value: v for k, v in self.threat_thresholds.items()
+                },
+                "response_thresholds": {
+                    k.value: v for k, v in self.response_thresholds.items()
+                },
                 "metrics": {
                     "threats_detected": self.threats_detected,
                     "threats_blocked": self.threats_blocked,
@@ -934,9 +1030,13 @@ class AdaptiveDefenseSystem:
                 "timestamp": _ts(),
             }
         try:
-            Path(os.path.dirname(path) or ".").mkdir(parents=True, exist_ok=True)
+            Path(os.path.dirname(path) or ".").mkdir(
+                parents=True, exist_ok=True
+            )
             with open(path, "w", encoding="utf-8") as f:
-                json.dump(state, f, indent=2, ensure_ascii=False, sort_keys=True)
+                json.dump(
+                    state, f, indent=2, ensure_ascii=False, sort_keys=True
+                )
             logger.info("Saved adaptive defense state to %s", path)
         except Exception as e:
             logger.error("Failed to save state to %s: %s", path, e)
@@ -969,9 +1069,17 @@ class AdaptiveDefenseSystem:
                 except Exception:
                     pass
             metrics = state.get("metrics", {})
-            self.threats_detected = int(metrics.get("threats_detected", self.threats_detected))
-            self.threats_blocked = int(metrics.get("threats_blocked", self.threats_blocked))
-            self.false_positives = int(metrics.get("false_positives", self.false_positives))
-            self.healings_performed = int(metrics.get("healings_performed", self.healings_performed))
+            self.threats_detected = int(
+                metrics.get("threats_detected", self.threats_detected)
+            )
+            self.threats_blocked = int(
+                metrics.get("threats_blocked", self.threats_blocked)
+            )
+            self.false_positives = int(
+                metrics.get("false_positives", self.false_positives)
+            )
+            self.healings_performed = int(
+                metrics.get("healings_performed", self.healings_performed)
+            )
 
         logger.info("Loaded adaptive defense state from %s", path)

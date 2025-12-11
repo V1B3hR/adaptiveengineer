@@ -11,28 +11,45 @@ from core.time_manager import get_time_manager, get_timestamp
 from core.trust_network import TrustNetwork
 
 # Import memory system components
-from core.memory_system import Memory, MemoryType, Classification, ShortMemoryStore
+from core.memory_system import (
+    Memory,
+    MemoryType,
+    Classification,
+    ShortMemoryStore,
+)
 
 # Import social signal infrastructure
 from core.social_signals import SocialSignal
 
 # Import configuration system (with fallback for backward compatibility)
 try:
-    from adaptiveneuralnetwork.config import AdaptiveNeuralNetworkConfig, get_global_config
+    from adaptiveneuralnetwork.config import (
+        AdaptiveNeuralNetworkConfig,
+        get_global_config,
+    )
 except ImportError:
     # Fallback for backward compatibility
     AdaptiveNeuralNetworkConfig = None
     get_global_config = lambda: None
 
 # Setup logger for alive_node module
-logger = logging.getLogger('alive_node')
+logger = logging.getLogger("alive_node")
 logger.setLevel(logging.WARNING)  # Only show warnings and errors
 
 
 class AliveLoopNode:
     sleep_stages = ["light", "REM", "deep"]
 
-    def __init__(self, position, velocity, initial_energy=10.0, field_strength=1.0, node_id=0, spatial_dims=None, config=None):
+    def __init__(
+        self,
+        position,
+        velocity,
+        initial_energy=10.0,
+        field_strength=1.0,
+        node_id=0,
+        spatial_dims=None,
+        config=None,
+    ):
         # Import spatial utilities
         from core.spatial_utils import validate_spatial_dimensions, zero_vector
 
@@ -49,9 +66,13 @@ class AliveLoopNode:
 
         # Validate position and velocity dimensions
         try:
-            validate_spatial_dimensions([self.position, self.velocity], self.spatial_dims)
+            validate_spatial_dimensions(
+                [self.position, self.velocity], self.spatial_dims
+            )
         except ValueError as e:
-            raise ValueError(f"Node {node_id} dimension validation failed: {e}") from e
+            raise ValueError(
+                f"Node {node_id} dimension validation failed: {e}"
+            ) from e
 
         # Initialize configuration (with fallback for backward compatibility)
         if config is None and AdaptiveNeuralNetworkConfig is not None:
@@ -81,44 +102,60 @@ class AliveLoopNode:
         # Behavioral attributes
         self.anxiety = 0.0
         self.sleep_stage = "light"
-        self.attention_focus = zero_vector(self.spatial_dims)  # Dimension-aware attention focus
+        self.attention_focus = zero_vector(
+            self.spatial_dims
+        )  # Dimension-aware attention focus
         self.radius = 0.5
 
         # Trust and social networks - Enhanced trust system
         self.trust_network_system = TrustNetwork(node_id)
-        self.trust_network = self.trust_network_system.trust_network  # Backward compatibility
+        self.trust_network = (
+            self.trust_network_system.trust_network
+        )  # Backward compatibility
 
         # Backward compatibility: Single trust value (like Cell objects have)
         # This represents general trustworthiness of this node (0.0 to 1.0)
         self.trust = 0.5  # Default neutral trust level
 
         # Enhanced social learning attributes
-        self.communication_queue = deque(maxlen=20)  # Incoming signals to process
-        self.signal_history = deque(maxlen=100)  # History of sent/received signals
+        self.communication_queue = deque(
+            maxlen=20
+        )  # Incoming signals to process
+        self.signal_history = deque(
+            maxlen=100
+        )  # History of sent/received signals
         self.collaborative_memories = {}  # Memories shared by other nodes
         self.social_learning_rate = 0.7  # How much to learn from others
-        self.influence_network = {}  # node_id -> influence_score (how much this node influences us)
+        self.influence_network = (
+            {}
+        )  # node_id -> influence_score (how much this node influences us)
 
         # New: Social emotion contagion
-        self.emotional_contagion_sensitivity = 0.5  # How susceptible to others' emotions
-        self.shared_experience_buffer = deque(maxlen=10)  # Recent shared experiences
+        self.emotional_contagion_sensitivity = (
+            0.5  # How susceptible to others' emotions
+        )
+        self.shared_experience_buffer = deque(
+            maxlen=10
+        )  # Recent shared experiences
 
         # New: Collective intelligence metrics
-        self.collective_contribution = 0.0  # How much this node contributes to collective
+        self.collective_contribution = (
+            0.0  # How much this node contributes to collective
+        )
         self.knowledge_diversity = 1.0  # Diversity of knowledge sources
 
         # New: Communication styles based on personality
         self.communication_style = {
             "directness": 0.7,  # 0.0 (indirect) to 1.0 (direct)
-            "formality": 0.3,   # 0.0 (casual) to 1.0 (formal)
-            "expressiveness": 0.6  # 0.0 (reserved) to 1.0 (expressive)
+            "formality": 0.3,  # 0.0 (casual) to 1.0 (formal)
+            "expressiveness": 0.6,  # 0.0 (reserved) to 1.0 (expressive)
         }
 
         # Missing attributes initialization
         self.communication_range = 2.0  # Default communication range
         self.emotional_state = {
             "valence": 0.0,  # -1 (negative) to +1 (positive)
-            "arousal": 0.0   # 0 (calm) to 1 (excited)
+            "arousal": 0.0,  # 0 (calm) to 1 (excited)
         }
 
         # Memory and communication bounds
@@ -128,31 +165,87 @@ class AliveLoopNode:
         self.last_step_time = 0
 
         # Extended emotional states (will be overridden by config if available)
-        self.joy = 0.0                         # Joy level (0.0 to 5.0)
-        self.grief = 0.0                       # Grief level (0.0 to 5.0)
-        self.sadness = 0.0                     # Sadness level (0.0 to 5.0)
-        self.anger = 0.0                       # Anger level (0.0 to 5.0)
-        self.hope = 2.0                        # Hope level (0.0 to 5.0), start with moderate hope
-        self.curiosity = 1.0                   # Curiosity level (0.0 to 5.0), start with some curiosity
-        self.frustration = 0.0                 # Frustration level (0.0 to 5.0)
-        self.resilience = 2.0                  # Resilience level (0.0 to 5.0), start with moderate resilience
+        self.joy = 0.0  # Joy level (0.0 to 5.0)
+        self.grief = 0.0  # Grief level (0.0 to 5.0)
+        self.sadness = 0.0  # Sadness level (0.0 to 5.0)
+        self.anger = 0.0  # Anger level (0.0 to 5.0)
+        self.hope = 2.0  # Hope level (0.0 to 5.0), start with moderate hope
+        self.curiosity = (
+            1.0  # Curiosity level (0.0 to 5.0), start with some curiosity
+        )
+        self.frustration = 0.0  # Frustration level (0.0 to 5.0)
+        self.resilience = 2.0  # Resilience level (0.0 to 5.0), start with moderate resilience
 
         # Configurable emotion schema - defines which emotions are tracked
         self.emotion_schema = {
             # Core emotions (always tracked)
-            'anxiety': {'type': 'negative', 'range': (0, float('inf')), 'default': 0.0, 'core': True},
-            'calm': {'type': 'positive', 'range': (0, 5.0), 'default': 1.0, 'core': True},
-            'energy': {'type': 'neutral', 'range': (0, float('inf')), 'default': initial_energy, 'core': True},
-
+            "anxiety": {
+                "type": "negative",
+                "range": (0, float("inf")),
+                "default": 0.0,
+                "core": True,
+            },
+            "calm": {
+                "type": "positive",
+                "range": (0, 5.0),
+                "default": 1.0,
+                "core": True,
+            },
+            "energy": {
+                "type": "neutral",
+                "range": (0, float("inf")),
+                "default": initial_energy,
+                "core": True,
+            },
             # Extended emotions (configurable)
-            'joy': {'type': 'positive', 'range': (0, 5.0), 'default': 0.0, 'core': False},
-            'grief': {'type': 'negative', 'range': (0, 5.0), 'default': 0.0, 'core': False},
-            'sadness': {'type': 'negative', 'range': (0, 5.0), 'default': 0.0, 'core': False},
-            'anger': {'type': 'negative', 'range': (0, 5.0), 'default': 0.0, 'core': False},
-            'hope': {'type': 'positive', 'range': (0, 5.0), 'default': 2.0, 'core': False},
-            'curiosity': {'type': 'positive', 'range': (0, 5.0), 'default': 1.0, 'core': False},
-            'frustration': {'type': 'negative', 'range': (0, 5.0), 'default': 0.0, 'core': False},
-            'resilience': {'type': 'positive', 'range': (0, 5.0), 'default': 2.0, 'core': False}
+            "joy": {
+                "type": "positive",
+                "range": (0, 5.0),
+                "default": 0.0,
+                "core": False,
+            },
+            "grief": {
+                "type": "negative",
+                "range": (0, 5.0),
+                "default": 0.0,
+                "core": False,
+            },
+            "sadness": {
+                "type": "negative",
+                "range": (0, 5.0),
+                "default": 0.0,
+                "core": False,
+            },
+            "anger": {
+                "type": "negative",
+                "range": (0, 5.0),
+                "default": 0.0,
+                "core": False,
+            },
+            "hope": {
+                "type": "positive",
+                "range": (0, 5.0),
+                "default": 2.0,
+                "core": False,
+            },
+            "curiosity": {
+                "type": "positive",
+                "range": (0, 5.0),
+                "default": 1.0,
+                "core": False,
+            },
+            "frustration": {
+                "type": "negative",
+                "range": (0, 5.0),
+                "default": 0.0,
+                "core": False,
+            },
+            "resilience": {
+                "type": "positive",
+                "range": (0, 5.0),
+                "default": 2.0,
+                "core": False,
+            },
         }
 
         # Initialize configuration-driven attributes
@@ -167,30 +260,32 @@ class AliveLoopNode:
         self.dedupe_ttl = 300  # 5 minutes TTL for deduplication
         self.dead_letter_queue = deque(maxlen=100)  # DLQ for poison messages
         self.signal_metrics = {
-            'processed_count': 0,
-            'error_count': 0,
-            'dlq_count': 0,
-            'duplicate_count': 0,
-            'processing_times': deque(maxlen=100)
+            "processed_count": 0,
+            "error_count": 0,
+            "dlq_count": 0,
+            "duplicate_count": 0,
+            "processing_times": deque(maxlen=100),
         }
         self.circuit_breaker = {
-            'state': 'closed',  # closed, open, half-open
-            'failure_count': 0,
-            'failure_threshold': 5,
-            'timeout': 30,  # seconds
-            'last_failure_time': 0
+            "state": "closed",  # closed, open, half-open
+            "failure_count": 0,
+            "failure_threshold": 5,
+            "timeout": 30,  # seconds
+            "last_failure_time": 0,
         }
         self.persisted_signals = deque(maxlen=1000)  # For replay capabilities
-        self.partition_queues = {}  # partition_key -> deque for ordering guarantees
+        self.partition_queues = (
+            {}
+        )  # partition_key -> deque for ordering guarantees
 
     def _get_config_value(self, *path, default=None):
         """
         Helper method to get configuration values with fallbacks.
-        
+
         Args:
             *path: Dot-separated path to config value (e.g., 'attack_resilience', 'energy_drain_resistance')
             default: Default value if config not available or path not found
-            
+
         Returns:
             Configuration value or default
         """
@@ -210,41 +305,77 @@ class AliveLoopNode:
         """Initialize attributes using configuration values with backward-compatible defaults."""
         # Enhanced attack resilience features - use config values with fallbacks
         self.energy_sharing_enabled = True
-        self.energy_sharing_history = deque(maxlen=self._get_config_value('rolling_history', 'max_len', default=20))
-        self.attack_detection_threshold = self._get_config_value('attack_resilience', 'attack_detection_threshold', default=3)
-        self.suspicious_events = deque(maxlen=self._get_config_value('attack_resilience', 'suspicious_events_max_len', default=10))
-        self.energy_drain_resistance = self._get_config_value('attack_resilience', 'energy_drain_resistance', default=0.7)
-        self.signal_redundancy_level = self._get_config_value('attack_resilience', 'signal_redundancy_level', default=2)
-        self.jamming_detection_sensitivity = self._get_config_value('attack_resilience', 'jamming_detection_sensitivity', default=0.3)
+        self.energy_sharing_history = deque(
+            maxlen=self._get_config_value(
+                "rolling_history", "max_len", default=20
+            )
+        )
+        self.attack_detection_threshold = self._get_config_value(
+            "attack_resilience", "attack_detection_threshold", default=3
+        )
+        self.suspicious_events = deque(
+            maxlen=self._get_config_value(
+                "attack_resilience", "suspicious_events_max_len", default=10
+            )
+        )
+        self.energy_drain_resistance = self._get_config_value(
+            "attack_resilience", "energy_drain_resistance", default=0.7
+        )
+        self.signal_redundancy_level = self._get_config_value(
+            "attack_resilience", "signal_redundancy_level", default=2
+        )
+        self.jamming_detection_sensitivity = self._get_config_value(
+            "attack_resilience", "jamming_detection_sensitivity", default=0.3
+        )
 
         # Energy system hardening attributes
         self.emergency_mode = False  # Emergency energy conservation mode
-        self.emergency_energy_threshold = 0.2  # Trigger emergency mode at 20% energy
-        self.normal_energy_threshold = 0.5   # Exit emergency mode at 50% energy
+        self.emergency_energy_threshold = (
+            0.2  # Trigger emergency mode at 20% energy
+        )
+        self.normal_energy_threshold = 0.5  # Exit emergency mode at 50% energy
         self.energy_attack_detected = False
-        self.energy_drain_events = deque(maxlen=10)  # Track recent energy drain events
-        self.energy_sharing_requests = deque(maxlen=5)  # Track energy sharing requests
-        self.distributed_energy_pool = 0.0  # Shared energy pool with trusted nodes
+        self.energy_drain_events = deque(
+            maxlen=10
+        )  # Track recent energy drain events
+        self.energy_sharing_requests = deque(
+            maxlen=5
+        )  # Track energy sharing requests
+        self.distributed_energy_pool = (
+            0.0  # Shared energy pool with trusted nodes
+        )
         self.threat_assessment_level = 0  # 0=low, 1=medium, 2=high, 3=critical
 
         # Enhanced energy conservation attributes
-        self.energy_conservation_multiplier = 1.0  # Multiplier for energy conservation effectiveness
+        self.energy_conservation_multiplier = (
+            1.0  # Multiplier for energy conservation effectiveness
+        )
         self.last_energy_level = self.energy  # Track energy changes
         self.energy_decline_rate = 0.0  # Track rate of energy decline
         self.survival_mode_active = False  # Ultra-low energy survival mode
 
         # Anxiety overwhelm safety protocol attributes - use config values
-        self.anxiety_threshold = self._get_config_value('proactive_interventions', 'anxiety_threshold', default=8.0)
+        self.anxiety_threshold = self._get_config_value(
+            "proactive_interventions", "anxiety_threshold", default=8.0
+        )
         self.calm = 1.0  # Initial calm level
         self.help_signals_sent = 0
-        self.max_help_signals_per_period = self._get_config_value('proactive_interventions', 'max_help_signals_per_period', default=3)
-        self.help_signal_cooldown = self._get_config_value('proactive_interventions', 'help_signal_cooldown', default=10)
+        self.max_help_signals_per_period = self._get_config_value(
+            "proactive_interventions", "max_help_signals_per_period", default=3
+        )
+        self.help_signal_cooldown = self._get_config_value(
+            "proactive_interventions", "help_signal_cooldown", default=10
+        )
         self.last_help_signal_time = 0
-        self.anxiety_unload_capacity = self._get_config_value('proactive_interventions', 'anxiety_unload_capacity', default=2.0)
+        self.anxiety_unload_capacity = self._get_config_value(
+            "proactive_interventions", "anxiety_unload_capacity", default=2.0
+        )
         self.received_help_this_period = False
 
         # Initialize histories with configurable max length
-        history_maxlen = self._get_config_value('rolling_history', 'max_len', default=20)
+        history_maxlen = self._get_config_value(
+            "rolling_history", "max_len", default=20
+        )
         self.anxiety_history = deque(maxlen=history_maxlen)
         self.joy_history = deque(maxlen=history_maxlen)
         self.grief_history = deque(maxlen=history_maxlen)
@@ -263,23 +394,41 @@ class AliveLoopNode:
             self.emotion_histories[emotion_name] = deque(maxlen=history_maxlen)
 
         # Frequency Intelligence System integration
-        self.frequency_sensors = None  # Will hold UnifiedFrequencyIntelligence instance
-        self.frequency_threats = deque(maxlen=50)  # Recent frequency-based threats
+        self.frequency_sensors = (
+            None  # Will hold UnifiedFrequencyIntelligence instance
+        )
+        self.frequency_threats = deque(
+            maxlen=50
+        )  # Recent frequency-based threats
         self.frequency_baseline = {}  # Baseline frequency environment
         self._frequency_intelligence_enabled = False
 
         # Log configuration application
-        if self.config and self._get_config_value('log_config_events', default=False):
-            self.config.log_event('config', f'Node {self.node_id} initialized with configuration',
-                                node_id=self.node_id,
-                                trend_window=self._get_config_value('trend_analysis', 'window', default=5),
-                                history_max_len=history_maxlen,
-                                anxiety_threshold=self.anxiety_threshold,
-                                energy_drain_resistance=self.energy_drain_resistance)
+        if self.config and self._get_config_value(
+            "log_config_events", default=False
+        ):
+            self.config.log_event(
+                "config",
+                f"Node {self.node_id} initialized with configuration",
+                node_id=self.node_id,
+                trend_window=self._get_config_value(
+                    "trend_analysis", "window", default=5
+                ),
+                history_max_len=history_maxlen,
+                anxiety_threshold=self.anxiety_threshold,
+                energy_drain_resistance=self.energy_drain_resistance,
+            )
 
-    def send_signal(self, target_nodes: list['AliveLoopNode'], signal_type: str,
-                   content: Any, urgency: float = 0.5, requires_response: bool = False,
-                   idempotency_key: str | None = None, partition_key: str | None = None):
+    def send_signal(
+        self,
+        target_nodes: list["AliveLoopNode"],
+        signal_type: str,
+        content: Any,
+        urgency: float = 0.5,
+        requires_response: bool = False,
+        idempotency_key: str | None = None,
+        partition_key: str | None = None,
+    ):
         """Send a signal to other nodes with rate limiting and flow control"""
         # Rate limiting check
         if self.communications_this_step >= self.max_communications_per_step:
@@ -291,21 +440,29 @@ class AliveLoopNode:
         # Producer-side flow control: Check target node queue capacity
         available_targets = []
         for target in target_nodes:
-            if hasattr(target, 'communication_queue'):
+            if hasattr(target, "communication_queue"):
                 queue_depth = len(target.communication_queue)
                 queue_capacity = target.communication_queue.maxlen
 
                 # Implement backpressure if queue is getting full
-                if queue_depth >= queue_capacity * 0.8:  # 80% capacity threshold
-                    logger.warning(f"Node {self.node_id}: Target node {target.node_id} queue near capacity ({queue_depth}/{queue_capacity})")
+                if (
+                    queue_depth >= queue_capacity * 0.8
+                ):  # 80% capacity threshold
+                    logger.warning(
+                        f"Node {self.node_id}: Target node {target.node_id} queue near capacity ({queue_depth}/{queue_capacity})"
+                    )
                     # Skip this target or apply circuit breaker logic
-                    if queue_depth >= queue_capacity * 0.95:  # 95% capacity - circuit break
+                    if (
+                        queue_depth >= queue_capacity * 0.95
+                    ):  # 95% capacity - circuit break
                         continue
 
                 available_targets.append(target)
 
         if not available_targets:
-            logger.warning(f"Node {self.node_id}: No available targets due to backpressure")
+            logger.warning(
+                f"Node {self.node_id}: No available targets due to backpressure"
+            )
             return []
 
         signal = SocialSignal(
@@ -315,7 +472,7 @@ class AliveLoopNode:
             source_id=self.node_id,
             requires_response=requires_response,
             idempotency_key=idempotency_key,
-            partition_key=partition_key or f"{self.node_id}_{signal_type}"
+            partition_key=partition_key or f"{self.node_id}_{signal_type}",
         )
         signal.timestamp = self._time
 
@@ -325,12 +482,17 @@ class AliveLoopNode:
 
         responses = []
         for target in available_targets:
-            if self.communications_this_step >= self.max_communications_per_step:
+            if (
+                self.communications_this_step
+                >= self.max_communications_per_step
+            ):
                 break  # Hit rate limit
 
             if self._can_communicate_with(target):
                 # Adjust signal based on relationship with target
-                adjusted_signal = self._adjust_signal_for_target(signal, target)
+                adjusted_signal = self._adjust_signal_for_target(
+                    signal, target
+                )
                 response = target.receive_signal(adjusted_signal)
                 if response:
                     responses.append(response)
@@ -348,7 +510,7 @@ class AliveLoopNode:
 
         if signal.idempotency_key in self.deduplication_store:
             entry = self.deduplication_store[signal.idempotency_key]
-            if current_time - entry['timestamp'] < self.dedupe_ttl:
+            if current_time - entry["timestamp"] < self.dedupe_ttl:
                 return True
             else:
                 # TTL expired, remove entry
@@ -359,8 +521,8 @@ class AliveLoopNode:
     def _record_signal_processed(self, signal: SocialSignal):
         """Record signal as processed for deduplication"""
         self.deduplication_store[signal.idempotency_key] = {
-            'timestamp': get_timestamp(),
-            'ttl': self.dedupe_ttl
+            "timestamp": get_timestamp(),
+            "ttl": self.dedupe_ttl,
         }
 
     def _validate_signal_schema(self, signal: SocialSignal) -> bool:
@@ -370,34 +532,42 @@ class AliveLoopNode:
 
     def _should_circuit_break(self) -> bool:
         """Check if circuit breaker should open"""
-        if self.circuit_breaker['state'] == 'open':
+        if self.circuit_breaker["state"] == "open":
             current_time = get_timestamp()
-            if current_time - self.circuit_breaker['last_failure_time'] > self.circuit_breaker['timeout']:
-                self.circuit_breaker['state'] = 'half-open'
+            if (
+                current_time - self.circuit_breaker["last_failure_time"]
+                > self.circuit_breaker["timeout"]
+            ):
+                self.circuit_breaker["state"] = "half-open"
                 return False
             return True
         return False
 
     def _record_processing_error(self, signal: SocialSignal, error: str):
         """Record processing error and update circuit breaker"""
-        self.signal_metrics['error_count'] += 1
-        self.circuit_breaker['failure_count'] += 1
-        self.circuit_breaker['last_failure_time'] = get_timestamp()
+        self.signal_metrics["error_count"] += 1
+        self.circuit_breaker["failure_count"] += 1
+        self.circuit_breaker["last_failure_time"] = get_timestamp()
 
-        if self.circuit_breaker['failure_count'] >= self.circuit_breaker['failure_threshold']:
-            self.circuit_breaker['state'] = 'open'
+        if (
+            self.circuit_breaker["failure_count"]
+            >= self.circuit_breaker["failure_threshold"]
+        ):
+            self.circuit_breaker["state"] = "open"
 
         # Add to DLQ
         dlq_entry = {
-            'signal': signal,
-            'error': error,
-            'timestamp': get_timestamp(),
-            'node_id': self.node_id
+            "signal": signal,
+            "error": error,
+            "timestamp": get_timestamp(),
+            "node_id": self.node_id,
         }
         self.dead_letter_queue.append(dlq_entry)
-        self.signal_metrics['dlq_count'] += 1
+        self.signal_metrics["dlq_count"] += 1
 
-        logger.warning(f"Node {self.node_id}: Signal {signal.id} moved to DLQ due to error: {error}")
+        logger.warning(
+            f"Node {self.node_id}: Signal {signal.id} moved to DLQ due to error: {error}"
+        )
 
     def _add_to_partition_queue(self, signal: SocialSignal):
         """Add signal to appropriate partition queue for ordering"""
@@ -412,45 +582,55 @@ class AliveLoopNode:
 
         # Calculate queue depths
         main_queue_depth = len(self.communication_queue)
-        partition_queue_depths = {k: len(v) for k, v in self.partition_queues.items()}
+        partition_queue_depths = {
+            k: len(v) for k, v in self.partition_queues.items()
+        }
 
         # Calculate message ages
         message_ages = []
         for signal in self.communication_queue:
-            if hasattr(signal, 'created_at'):
+            if hasattr(signal, "created_at"):
                 age = current_time - signal.created_at
                 message_ages.append(age)
 
         # Calculate throughput (messages per second over last minute)
-        recent_times = [t for t in self.signal_metrics['processing_times']
-                       if current_time - t < 60]
+        recent_times = [
+            t
+            for t in self.signal_metrics["processing_times"]
+            if current_time - t < 60
+        ]
         throughput = len(recent_times) / 60.0 if recent_times else 0.0
 
         return {
-            'queue_depth': main_queue_depth,
-            'partition_queue_depths': partition_queue_depths,
-            'max_message_age': max(message_ages) if message_ages else 0,
-            'avg_message_age': sum(message_ages) / len(message_ages) if message_ages else 0,
-            'throughput_per_second': throughput,
-            'error_rate': self.signal_metrics['error_count'] / max(1, self.signal_metrics['processed_count']),
-            'dlq_count': self.signal_metrics['dlq_count'],
-            'duplicate_count': self.signal_metrics['duplicate_count'],
-            'circuit_breaker_state': self.circuit_breaker['state']
+            "queue_depth": main_queue_depth,
+            "partition_queue_depths": partition_queue_depths,
+            "max_message_age": max(message_ages) if message_ages else 0,
+            "avg_message_age": (
+                sum(message_ages) / len(message_ages) if message_ages else 0
+            ),
+            "throughput_per_second": throughput,
+            "error_rate": self.signal_metrics["error_count"]
+            / max(1, self.signal_metrics["processed_count"]),
+            "dlq_count": self.signal_metrics["dlq_count"],
+            "duplicate_count": self.signal_metrics["duplicate_count"],
+            "circuit_breaker_state": self.circuit_breaker["state"],
         }
 
     def _can_process_signal(self, signal: SocialSignal) -> bool:
         """
         Check if signal can be processed (circuit breaker, schema, deduplication, energy).
-        
+
         Args:
             signal: Signal to validate
-            
+
         Returns:
             True if signal can be processed, False otherwise
         """
         # Circuit breaker check
         if self._should_circuit_break():
-            logger.warning(f"Node {self.node_id}: Circuit breaker open, rejecting signal {signal.id}")
+            logger.warning(
+                f"Node {self.node_id}: Circuit breaker open, rejecting signal {signal.id}"
+            )
             return False
 
         # Schema validation
@@ -461,8 +641,10 @@ class AliveLoopNode:
 
         # Deduplication check
         if self._is_duplicate_signal(signal):
-            self.signal_metrics['duplicate_count'] += 1
-            logger.debug(f"Node {self.node_id}: Duplicate signal {signal.id} ignored")
+            self.signal_metrics["duplicate_count"] += 1
+            logger.debug(
+                f"Node {self.node_id}: Duplicate signal {signal.id} ignored"
+            )
             return False
 
         # Energy check
@@ -474,43 +656,51 @@ class AliveLoopNode:
     def _consume_processing_energy(self, signal: SocialSignal) -> None:
         """
         Apply energy cost for signal processing.
-        
+
         Args:
             signal: Signal being processed
         """
         processing_cost = 0.05 + (0.1 * signal.urgency)
         self.energy = max(0, self.energy - processing_cost)
 
-    def _record_signal_attempt(self, signal: SocialSignal, processing_start_time: int) -> None:
+    def _record_signal_attempt(
+        self, signal: SocialSignal, processing_start_time: int
+    ) -> None:
         """
         Record signal processing attempt and persist for replay.
-        
+
         Args:
             signal: Signal being processed
             processing_start_time: Timestamp when processing started
         """
-        signal.processing_attempts.append({
-            'node_id': self.node_id,
-            'timestamp': processing_start_time,
-            'correlation_id': signal.correlation_id
-        })
+        signal.processing_attempts.append(
+            {
+                "node_id": self.node_id,
+                "timestamp": processing_start_time,
+                "correlation_id": signal.correlation_id,
+            }
+        )
 
         self._add_to_partition_queue(signal)
         self.communication_queue.append(signal)
 
-        self.persisted_signals.append({
-            'signal': signal,
-            'timestamp': processing_start_time,
-            'node_id': self.node_id
-        })
+        self.persisted_signals.append(
+            {
+                "signal": signal,
+                "timestamp": processing_start_time,
+                "node_id": self.node_id,
+            }
+        )
 
-    def _dispatch_signal_by_type(self, signal: SocialSignal) -> SocialSignal | None:
+    def _dispatch_signal_by_type(
+        self, signal: SocialSignal
+    ) -> SocialSignal | None:
         """
         Route signal to appropriate handler based on signal type.
-        
+
         Args:
             signal: Signal to process
-            
+
         Returns:
             Response signal if applicable, None otherwise
         """
@@ -520,13 +710,25 @@ class AliveLoopNode:
             "warning": lambda s: self._process_warning_signal(s),
             "resource": lambda s: self._process_resource_signal(s),
             "anxiety_help": lambda s: self._process_anxiety_help_signal(s),
-            "anxiety_help_response": lambda s: self._process_anxiety_help_response(s),
+            "anxiety_help_response": lambda s: self._process_anxiety_help_response(
+                s
+            ),
             "joy_share": lambda s: self._process_joy_share_signal(s),
-            "grief_support_request": lambda s: self._process_grief_support_request_signal(s),
-            "grief_support_response": lambda s: self._process_grief_support_response_signal(s),
-            "celebration_invite": lambda s: self._process_celebration_invite_signal(s),
-            "comfort_request": lambda s: self._process_comfort_request_signal(s),
-            "comfort_response": lambda s: self._process_comfort_response_signal(s),
+            "grief_support_request": lambda s: self._process_grief_support_request_signal(
+                s
+            ),
+            "grief_support_response": lambda s: self._process_grief_support_response_signal(
+                s
+            ),
+            "celebration_invite": lambda s: self._process_celebration_invite_signal(
+                s
+            ),
+            "comfort_request": lambda s: self._process_comfort_request_signal(
+                s
+            ),
+            "comfort_response": lambda s: self._process_comfort_response_signal(
+                s
+            ),
         }
 
         handler = signal_handlers.get(signal.signal_type)
@@ -537,27 +739,31 @@ class AliveLoopNode:
             self._record_processing_error(signal, error_msg)
             return None
 
-    def _finalize_signal_processing(self, signal: SocialSignal, processing_start_time: int) -> None:
+    def _finalize_signal_processing(
+        self, signal: SocialSignal, processing_start_time: int
+    ) -> None:
         """
         Complete signal processing: apply emotional contagion, record metrics, reset circuit breaker.
-        
+
         Args:
             signal: Processed signal
             processing_start_time: When processing started
         """
         # Emotional contagion
-        if hasattr(signal.content, 'emotional_valence'):
-            self._apply_emotional_contagion(signal.content.emotional_valence, signal.source_id)
+        if hasattr(signal.content, "emotional_valence"):
+            self._apply_emotional_contagion(
+                signal.content.emotional_valence, signal.source_id
+            )
 
         # Record successful processing
         self._record_signal_processed(signal)
-        self.signal_metrics['processed_count'] += 1
-        self.signal_metrics['processing_times'].append(processing_start_time)
+        self.signal_metrics["processed_count"] += 1
+        self.signal_metrics["processing_times"].append(processing_start_time)
 
         # Reset circuit breaker on success
-        if self.circuit_breaker['state'] == 'half-open':
-            self.circuit_breaker['state'] = 'closed'
-            self.circuit_breaker['failure_count'] = 0
+        if self.circuit_breaker["state"] == "half-open":
+            self.circuit_breaker["state"] = "closed"
+            self.circuit_breaker["failure_count"] = 0
 
     def receive_signal(self, signal: SocialSignal) -> SocialSignal | None:
         """Process an incoming signal from another node with production features"""
@@ -598,7 +804,7 @@ class AliveLoopNode:
                 timestamp=self._time,
                 memory_type="shared",
                 emotional_valence=0.0,
-                source_node=signal.source_id
+                source_node=signal.source_id,
             )
 
         # Determine trustworthiness of the source
@@ -606,7 +812,9 @@ class AliveLoopNode:
         influence_level = self.influence_network.get(signal.source_id, 0.5)
 
         # Adjust memory importance based on trust and influence
-        adjusted_importance = memory.importance * trust_level * (0.5 + 0.5 * influence_level)
+        adjusted_importance = (
+            memory.importance * trust_level * (0.5 + 0.5 * influence_level)
+        )
 
         # Record as shared memory
         shared_memory = Memory(
@@ -615,7 +823,7 @@ class AliveLoopNode:
             timestamp=self._time,
             memory_type="shared",
             emotional_valence=memory.emotional_valence,
-            source_node=signal.source_id
+            source_node=signal.source_id,
         )
 
         self.memory.append(shared_memory)
@@ -624,26 +832,36 @@ class AliveLoopNode:
         self.collaborative_memories[memory_key] = shared_memory
 
         # Update knowledge diversity
-        unique_sources = len(set(m.source_node for m in self.memory if m.source_node is not None))
+        unique_sources = len(
+            set(
+                m.source_node for m in self.memory if m.source_node is not None
+            )
+        )
         self.knowledge_diversity = min(1.0, unique_sources / 10.0)
 
         # Social learning - adjust own memories based on shared information
         self._integrate_shared_knowledge(shared_memory)
 
-    def _process_query_signal(self, signal: SocialSignal) -> SocialSignal | None:
+    def _process_query_signal(
+        self, signal: SocialSignal
+    ) -> SocialSignal | None:
         """Process a query from another node and return response"""
         if signal.requires_response:
             # Find relevant memories to share
             relevant_memories = []
             for memory in self.memory:
-                if (self._is_memory_relevant(memory, signal.content) and
-                    memory.importance > 0.3 and
-                    memory.memory_type != "shared"):  # Don't reshare shared memories
+                if (
+                    self._is_memory_relevant(memory, signal.content)
+                    and memory.importance > 0.3
+                    and memory.memory_type != "shared"
+                ):  # Don't reshare shared memories
                     relevant_memories.append(memory)
 
             # Select most important memory to share
             if relevant_memories:
-                relevant_memories.sort(key=lambda m: m.importance, reverse=True)
+                relevant_memories.sort(
+                    key=lambda m: m.importance, reverse=True
+                )
                 memory_to_share = relevant_memories[0]
 
                 # Create response signal
@@ -651,7 +869,7 @@ class AliveLoopNode:
                     content=memory_to_share,
                     signal_type="memory",
                     urgency=0.5,
-                    source_id=self.node_id
+                    source_id=self.node_id,
                 )
         return None
 
@@ -678,7 +896,7 @@ class AliveLoopNode:
             importance=0.7,
             timestamp=self._time,
             memory_type="resource",
-            source_node=signal.source_id
+            source_node=signal.source_id,
         )
         self.memory.append(resource_memory)
 
@@ -687,8 +905,10 @@ class AliveLoopNode:
         # Check if we have similar memories
         similar_memories = []
         for memory in self.memory:
-            if (memory.content == shared_memory.content and
-                memory.memory_type != "shared"):
+            if (
+                memory.content == shared_memory.content
+                and memory.memory_type != "shared"
+            ):
                 similar_memories.append(memory)
 
         # Update existing memories based on shared information
@@ -696,38 +916,51 @@ class AliveLoopNode:
             # Consensus increases importance, conflict decreases it
             if memory.emotional_valence * shared_memory.emotional_valence >= 0:
                 # Generally agreeing memories
-                memory.importance = min(1.0, memory.importance + 0.1 * shared_memory.importance)
+                memory.importance = min(
+                    1.0, memory.importance + 0.1 * shared_memory.importance
+                )
                 memory.validation_count += 1
             else:
                 # Conflicting memories - reduce importance
                 memory.importance *= 0.8
 
             # Emotional alignment
-            memory.emotional_valence = (memory.emotional_valence +
-                                       shared_memory.emotional_valence * 0.2) / 1.2
+            memory.emotional_valence = (
+                memory.emotional_valence
+                + shared_memory.emotional_valence * 0.2
+            ) / 1.2
 
-    def _apply_emotional_contagion(self, emotional_valence: float, source_id: int):
+    def _apply_emotional_contagion(
+        self, emotional_valence: float, source_id: int
+    ):
         """Adjust emotions based on others' emotions"""
         trust_level = self.trust_network.get(source_id, 0.5)
         influence_level = self.influence_network.get(source_id, 0.5)
 
         # More influenced by trusted and influential nodes
-        contagion_factor = self.emotional_contagion_sensitivity * trust_level * influence_level
+        contagion_factor = (
+            self.emotional_contagion_sensitivity
+            * trust_level
+            * influence_level
+        )
 
         # Adjust emotional state
         self.emotional_state["valence"] = (
-            (1 - contagion_factor) * self.emotional_state["valence"] +
-            contagion_factor * emotional_valence
-        )
+            1 - contagion_factor
+        ) * self.emotional_state[
+            "valence"
+        ] + contagion_factor * emotional_valence
 
         # Record shared experience
-        self.shared_experience_buffer.append({
-            "source": source_id,
-            "valence": emotional_valence,
-            "timestamp": self._time
-        })
+        self.shared_experience_buffer.append(
+            {
+                "source": source_id,
+                "valence": emotional_valence,
+                "timestamp": self._time,
+            }
+        )
 
-    def _can_communicate_with(self, other_node: 'AliveLoopNode') -> bool:
+    def _can_communicate_with(self, other_node: "AliveLoopNode") -> bool:
         """Check if communication is possible with another node"""
         # Check distance
         distance = np.linalg.norm(self.position - other_node.position)
@@ -742,7 +975,9 @@ class AliveLoopNode:
         trust_level = self.trust_network.get(other_node.node_id, 0.5)
         return trust_level > 0.3
 
-    def _adjust_signal_for_target(self, signal: SocialSignal, target: 'AliveLoopNode') -> SocialSignal:
+    def _adjust_signal_for_target(
+        self, signal: SocialSignal, target: "AliveLoopNode"
+    ) -> SocialSignal:
         """Adjust signal based on relationship with target"""
         trust_level = self.trust_network.get(target.node_id, 0.5)
 
@@ -750,8 +985,10 @@ class AliveLoopNode:
         adjusted_urgency = signal.urgency * trust_level
 
         # Adjust content based on communication style differences
-        style_diff = abs(self.communication_style["directness"] -
-                        target.communication_style["directness"])
+        style_diff = abs(
+            self.communication_style["directness"]
+            - target.communication_style["directness"]
+        )
 
         # More direct if styles are similar
         if style_diff < 0.3:
@@ -762,21 +999,25 @@ class AliveLoopNode:
             signal_type=signal.signal_type,
             urgency=adjusted_urgency,
             source_id=self.node_id,
-            requires_response=signal.requires_response
+            requires_response=signal.requires_response,
         )
 
-    def _update_trust_after_communication(self, target: 'AliveLoopNode', signal_type: str):
+    def _update_trust_after_communication(
+        self, target: "AliveLoopNode", signal_type: str
+    ):
         """Update trust based on communication outcome using enhanced trust system"""
         # Create context for trust update
         context = {
-            'timestamp': self._time,
-            'source_energy': self.energy,
-            'target_energy': getattr(target, 'energy', None),
-            'communication_history': len(self.signal_history)
+            "timestamp": self._time,
+            "source_energy": self.energy,
+            "target_energy": getattr(target, "energy", None),
+            "communication_history": len(self.signal_history),
         }
 
         # Use enhanced trust network system
-        new_trust = self.trust_network_system.update_trust(target, signal_type, context)
+        new_trust = self.trust_network_system.update_trust(
+            target, signal_type, context
+        )
 
         # Update the backward compatibility dict
         self.trust_network[target.node_id] = new_trust
@@ -804,34 +1045,40 @@ class AliveLoopNode:
         alerts = []
 
         # Check for concerning patterns
-        if metrics['suspicious_ratio'] > 0.4:
-            alerts.append({
-                'level': 'WARNING',
-                'message': f"High suspicious node ratio: {metrics['suspicious_ratio']:.1%}"
-            })
+        if metrics["suspicious_ratio"] > 0.4:
+            alerts.append(
+                {
+                    "level": "WARNING",
+                    "message": f"High suspicious node ratio: {metrics['suspicious_ratio']:.1%}",
+                }
+            )
 
-        if metrics['network_resilience'] < 0.3:
-            alerts.append({
-                'level': 'CRITICAL',
-                'message': f"Low network resilience: {metrics['network_resilience']:.1%}"
-            })
+        if metrics["network_resilience"] < 0.3:
+            alerts.append(
+                {
+                    "level": "CRITICAL",
+                    "message": f"Low network resilience: {metrics['network_resilience']:.1%}",
+                }
+            )
 
-        if metrics['trust_variance'] > 0.3:
-            alerts.append({
-                'level': 'INFO',
-                'message': f"High trust variance: {metrics['trust_variance']:.3f} - network may be unstable"
-            })
+        if metrics["trust_variance"] > 0.3:
+            alerts.append(
+                {
+                    "level": "INFO",
+                    "message": f"High trust variance: {metrics['trust_variance']:.3f} - network may be unstable",
+                }
+            )
 
         return {
-            'metrics': metrics,
-            'alerts': alerts,
-            'timestamp': self._time,
-            'overall_health': self._calculate_network_health_score(metrics)
+            "metrics": metrics,
+            "alerts": alerts,
+            "timestamp": self._time,
+            "overall_health": self._calculate_network_health_score(metrics),
         }
 
     def _calculate_network_health_score(self, metrics):
         """Calculate overall network health score (0-1)"""
-        if metrics['total_connections'] == 0:
+        if metrics["total_connections"] == 0:
             return 0.5  # Neutral for no connections
 
         # Weight different factors
@@ -841,10 +1088,11 @@ class AliveLoopNode:
         variance_penalty_weight = 0.1
 
         score = (
-            metrics['network_resilience'] * resilience_weight +
-            metrics['average_trust'] * trust_avg_weight +
-            (1.0 - metrics['suspicious_ratio']) * suspicious_penalty_weight +
-            (1.0 - min(1.0, metrics['trust_variance'])) * variance_penalty_weight
+            metrics["network_resilience"] * resilience_weight
+            + metrics["average_trust"] * trust_avg_weight
+            + (1.0 - metrics["suspicious_ratio"]) * suspicious_penalty_weight
+            + (1.0 - min(1.0, metrics["trust_variance"]))
+            * variance_penalty_weight
         )
 
         return max(0.0, min(1.0, score))
@@ -853,25 +1101,34 @@ class AliveLoopNode:
 
     def initiate_trust_consensus_vote(self, subject_node_id, nearby_nodes):
         """Initiate a distributed consensus vote about a node's trustworthiness"""
-        vote_request = self.trust_network_system.initiate_consensus_vote(subject_node_id)
+        vote_request = self.trust_network_system.initiate_consensus_vote(
+            subject_node_id
+        )
 
         # Send vote request to trusted neighbors
         responses = []
-        trusted_voters = [node for node in nearby_nodes
-                         if self.trust_network.get(node.node_id, 0) > 0.6]
+        trusted_voters = [
+            node
+            for node in nearby_nodes
+            if self.trust_network.get(node.node_id, 0) > 0.6
+        ]
 
-        for voter_node in trusted_voters[:5]:  # Limit to 5 voters to avoid spam
+        for voter_node in trusted_voters[
+            :5
+        ]:  # Limit to 5 voters to avoid spam
             response = voter_node.respond_to_trust_vote(vote_request)
             if response:
                 responses.append(response)
 
         # Process consensus results
-        consensus_result = self.trust_network_system.process_consensus_vote(vote_request, responses)
+        consensus_result = self.trust_network_system.process_consensus_vote(
+            vote_request, responses
+        )
         return consensus_result
 
     def respond_to_trust_vote(self, vote_request):
         """Respond to a trust consensus vote request"""
-        subject_id = vote_request.get('subject')
+        subject_id = vote_request.get("subject")
         if subject_id is None:
             return None
 
@@ -879,55 +1136,72 @@ class AliveLoopNode:
         our_trust = self.trust_network_system.get_trust(subject_id)
 
         # Calculate confidence based on interaction history from trust network system
-        interaction_history = self.trust_network_system.interaction_history.get(subject_id, [])
+        interaction_history = (
+            self.trust_network_system.interaction_history.get(subject_id, [])
+        )
         interaction_count = len(interaction_history)
-        confidence = min(1.0, interaction_count / 10.0)  # More interactions = higher confidence
+        confidence = min(
+            1.0, interaction_count / 10.0
+        )  # More interactions = higher confidence
 
         return {
-            'voter_id': self.node_id,
-            'trust_assessment': our_trust,
-            'confidence': confidence,
-            'interaction_count': interaction_count,
-            'timestamp': self._time
+            "voter_id": self.node_id,
+            "trust_assessment": our_trust,
+            "confidence": confidence,
+            "interaction_count": interaction_count,
+            "timestamp": self._time,
         }
 
     # Byzantine Fault Tolerance Testing
 
-    def run_byzantine_stress_test(self, malicious_ratio=0.33, num_simulations=50):
+    def run_byzantine_stress_test(
+        self, malicious_ratio=0.33, num_simulations=50
+    ):
         """Run Byzantine fault tolerance stress test"""
-        logger.info(f"Node {self.node_id}: Running Byzantine stress test with {malicious_ratio:.1%} malicious ratio")
+        logger.info(
+            f"Node {self.node_id}: Running Byzantine stress test with {malicious_ratio:.1%} malicious ratio"
+        )
 
         results = self.trust_network_system.stress_test_byzantine_resilience(
-            malicious_ratio=malicious_ratio,
-            num_simulations=num_simulations
+            malicious_ratio=malicious_ratio, num_simulations=num_simulations
         )
 
         # Log results
-        logger.info(f"Node {self.node_id}: Byzantine resilience score: {results['resilience_score']:.3f}")
-        logger.info(f"Node {self.node_id}: Attack detection rate: {results['detection_rate']:.3f}")
-        logger.info(f"Node {self.node_id}: False positive rate: {results['false_positive_rate']:.3f}")
+        logger.info(
+            f"Node {self.node_id}: Byzantine resilience score: {results['resilience_score']:.3f}"
+        )
+        logger.info(
+            f"Node {self.node_id}: Attack detection rate: {results['detection_rate']:.3f}"
+        )
+        logger.info(
+            f"Node {self.node_id}: False positive rate: {results['false_positive_rate']:.3f}"
+        )
 
         return results
 
     def process_trust_verification_request(self, verification_request):
         """Process a community trust verification request"""
-        subject_id = verification_request.get('subject')
+        subject_id = verification_request.get("subject")
         if subject_id is None:
             return None
 
         # Provide our opinion on the subject
         our_trust = self.trust_network_system.get_trust(subject_id)
         return {
-            'trust_level': our_trust,
-            'responder_id': self.node_id,
-            'confidence': 0.8 if subject_id in self.trust_network else 0.3
+            "trust_level": our_trust,
+            "responder_id": self.node_id,
+            "confidence": 0.8 if subject_id in self.trust_network else 0.3,
         }
 
     def handle_community_trust_feedback(self, subject_id, feedback_list):
         """Handle community feedback about a suspicious node"""
-        self.trust_network_system.process_community_feedback(subject_id, feedback_list)
+        self.trust_network_system.process_community_feedback(
+            subject_id, feedback_list
+        )
         # Update backward compatibility dict
-        self.trust_network[subject_id] = self.trust_network_system.get_trust(subject_id)
+        self.trust_network[subject_id] = self.trust_network_system.get_trust(
+            subject_id
+        )
         # Update single trust attribute
         self._update_trust_attribute()
 
@@ -942,7 +1216,9 @@ class AliveLoopNode:
         if trust_values:
             # Base trust on average, but also consider trust network health
             avg_trust = np.mean(trust_values)
-            trust_variance = np.var(trust_values) if len(trust_values) > 1 else 0
+            trust_variance = (
+                np.var(trust_values) if len(trust_values) > 1 else 0
+            )
 
             # Lower trust if high variance (inconsistent relationships)
             consistency_penalty = min(trust_variance * 0.5, 0.2)
@@ -953,16 +1229,18 @@ class AliveLoopNode:
     def _is_memory_relevant(self, memory, query: Any) -> bool:
         """Check if a memory is relevant to a query"""
         # Handle both Memory objects and dict objects for backward compatibility
-        if hasattr(memory, 'content'):
+        if hasattr(memory, "content"):
             content = memory.content
         else:
-            content = memory.get('content', '')
+            content = memory.get("content", "")
 
         # Simple relevance check - could be enhanced with semantic similarity
         if isinstance(query, str) and isinstance(content, str):
             return query.lower() in content.lower()
         elif isinstance(query, str) and isinstance(content, dict):
-            return any(query.lower() in str(v).lower() for v in content.values())
+            return any(
+                query.lower() in str(v).lower() for v in content.values()
+            )
         return False
 
     def process_social_interactions(self):
@@ -975,13 +1253,19 @@ class AliveLoopNode:
 
         return processed_signals
 
-    def share_valuable_memory(self, nodes: list['AliveLoopNode']) -> list[SocialSignal]:
+    def share_valuable_memory(
+        self, nodes: list["AliveLoopNode"]
+    ) -> list[SocialSignal]:
         """Share the most valuable memory with other nodes"""
         if self.phase != "interactive" or self.energy < 2.0:
             return []
 
         # Find most valuable memory to share
-        valuable_memories = [m for m in self.memory if m.importance > 0.7 and m.memory_type != "shared"]
+        valuable_memories = [
+            m
+            for m in self.memory
+            if m.importance > 0.7 and m.memory_type != "shared"
+        ]
         if not valuable_memories:
             return []
 
@@ -989,14 +1273,17 @@ class AliveLoopNode:
         memory_to_share = valuable_memories[0]
 
         # Ethics check before sharing memory
-        ethics_result = audit_decision({
-            "action": "memory_sharing",
-            "preserve_life": True,  # Memory sharing doesn't harm life
-            "absolute_honesty": True,  # Sharing truthful memories
-            "privacy": not hasattr(memory_to_share, 'private') or not memory_to_share.private,
-            "human_authority": True,  # Respecting human oversight
-            "proportionality": True  # Sharing valuable information is proportional
-        })
+        ethics_result = audit_decision(
+            {
+                "action": "memory_sharing",
+                "preserve_life": True,  # Memory sharing doesn't harm life
+                "absolute_honesty": True,  # Sharing truthful memories
+                "privacy": not hasattr(memory_to_share, "private")
+                or not memory_to_share.private,
+                "human_authority": True,  # Respecting human oversight
+                "proportionality": True,  # Sharing valuable information is proportional
+            }
+        )
 
         if not ethics_result.get("compliant", True):
             return []  # Don't share if ethics violation
@@ -1004,15 +1291,20 @@ class AliveLoopNode:
         # Share with nodes that would find it most valuable
         recipients = []
         for node in nodes:
-            if (self._can_communicate_with(node) and
-                self._would_node_value_memory(node, memory_to_share)):
+            if self._can_communicate_with(
+                node
+            ) and self._would_node_value_memory(node, memory_to_share):
                 recipients.append(node)
 
         if recipients:
-            return self.send_signal(recipients, "memory", memory_to_share, urgency=0.7)
+            return self.send_signal(
+                recipients, "memory", memory_to_share, urgency=0.7
+            )
         return []
 
-    def _would_node_value_memory(self, node: 'AliveLoopNode', memory: Memory) -> bool:
+    def _would_node_value_memory(
+        self, node: "AliveLoopNode", memory: Memory
+    ) -> bool:
         """Check if another node would value this memory"""
         # Simple heuristic - nodes with low energy value energy-related memories
         if node.energy < 5 and "energy" in str(memory.content).lower():
@@ -1033,7 +1325,7 @@ class AliveLoopNode:
         # If still too many memories, remove oldest with lowest importance
         if len(self.memory) > self.max_memory_size:
             self.memory.sort(key=lambda m: (m.importance, -m.timestamp))
-            self.memory = self.memory[-self.max_memory_size:]
+            self.memory = self.memory[-self.max_memory_size :]
 
         # Age all memories
         for memory in self.memory:
@@ -1058,7 +1350,7 @@ class AliveLoopNode:
     def _sync_time_management(self, current_time: int | None = None) -> None:
         """
         Synchronize with centralized time manager.
-        
+
         Args:
             current_time: Optional override time for backward compatibility
         """
@@ -1109,15 +1401,19 @@ class AliveLoopNode:
     def _update_communication_style(self) -> None:
         """Update communication style based on current phase."""
         if self.phase == "interactive":
-            self.communication_style["directness"] = min(1.0, self.communication_style["directness"] + 0.1)
+            self.communication_style["directness"] = min(
+                1.0, self.communication_style["directness"] + 0.1
+            )
         elif self.phase == "sleep":
-            self.communication_style["directness"] = max(0.0, self.communication_style["directness"] - 0.1)
+            self.communication_style["directness"] = max(
+                0.0, self.communication_style["directness"] - 0.1
+            )
 
     def _handle_proactive_interventions(self) -> None:
         """Assess and handle proactive interventions if needed."""
         if self._time % 10 == 0:  # Check every 10 steps to avoid overload
             intervention_assessment = self.assess_intervention_need()
-            if intervention_assessment['intervention_needed']:
+            if intervention_assessment["intervention_needed"]:
                 # Store assessment for network to act upon
                 # This allows the network layer to coordinate interventions
                 self._last_intervention_assessment = intervention_assessment
@@ -1158,10 +1454,12 @@ class AliveLoopNode:
     def interact_with_capacitor(self, capacitor, threshold=0.5):
         """Enhanced interaction with capacitors"""
         # Validate spatial dimensions match
-        if hasattr(capacitor, 'position'):
+        if hasattr(capacitor, "position"):
             if self.position.shape != capacitor.position.shape:
-                raise ValueError(f"Node {self.node_id} spatial dimensions {self.position.shape} "
-                               f"don't match capacitor dimensions {capacitor.position.shape}")
+                raise ValueError(
+                    f"Node {self.node_id} spatial dimensions {self.position.shape} "
+                    f"don't match capacitor dimensions {capacitor.position.shape}"
+                )
 
         distance = np.linalg.norm(self.position - capacitor.position)
 
@@ -1171,9 +1469,13 @@ class AliveLoopNode:
 
             if transfer_amount > 0:
                 # Transfer energy to capacitor
-                actual_transfer = min(transfer_amount, self.energy - 1.0)  # Keep some energy
+                actual_transfer = min(
+                    transfer_amount, self.energy - 1.0
+                )  # Keep some energy
                 if actual_transfer > 0:
-                    capacitor.energy = min(capacitor.capacity, capacitor.energy + actual_transfer)
+                    capacitor.energy = min(
+                        capacitor.capacity, capacitor.energy + actual_transfer
+                    )
                     self.energy -= actual_transfer
             else:
                 # Receive energy from capacitor
@@ -1188,32 +1490,38 @@ class AliveLoopNode:
         energy_memories = []
         for m in self.memory:
             # Handle both Memory objects and dict objects for backward compatibility
-            if hasattr(m, 'content'):
+            if hasattr(m, "content"):
                 content = m.content
             else:
-                content = m.get('content', {})
+                content = m.get("content", {})
 
-            if isinstance(content, dict) and 'energy' in content:
-                energy_memories.append(content['energy'])
-            elif 'energy' in str(content):
+            if isinstance(content, dict) and "energy" in content:
+                energy_memories.append(content["energy"])
+            elif "energy" in str(content):
                 energy_memories.append(1.0)  # Default energy value
 
         if energy_memories:
-            avg_energy_change = sum(energy_memories[-5:]) / len(energy_memories[-5:])
+            avg_energy_change = sum(energy_memories[-5:]) / len(
+                energy_memories[-5:]
+            )
             self.predicted_energy = max(0, self.energy + avg_energy_change)
         else:
             self.predicted_energy = self.energy
 
-    def train(self, experiences: list[dict[str, Any]], learning_rate: float | None = None) -> dict[str, Any]:
+    def train(
+        self,
+        experiences: list[dict[str, Any]],
+        learning_rate: float | None = None,
+    ) -> dict[str, Any]:
         """
         Train the node based on a batch of experiences using reinforcement learning principles.
-        
+
         This method enables the node to learn from past experiences by:
         - Storing valuable experiences as memories
         - Adjusting behavioral parameters based on rewards
         - Updating predictions based on patterns
         - Adapting emotional responses to outcomes
-        
+
         Args:
             experiences: List of experience dictionaries, each containing:
                 - 'state': Dictionary of state variables (energy, position, etc.)
@@ -1222,7 +1530,7 @@ class AliveLoopNode:
                 - 'next_state': Dictionary of resulting state variables
                 - 'done': Boolean indicating if episode ended
             learning_rate: Optional override for social_learning_rate (default: uses node's social_learning_rate)
-        
+
         Returns:
             Dictionary containing training metrics:
                 - 'total_reward': Sum of all rewards in batch
@@ -1237,27 +1545,29 @@ class AliveLoopNode:
         memories_created = 0
 
         for experience in experiences:
-            reward = experience.get('reward', 0.0)
-            action = experience.get('action', 'unknown')
-            state = experience.get('state', {})
-            next_state = experience.get('next_state', {})
+            reward = experience.get("reward", 0.0)
+            action = experience.get("action", "unknown")
+            state = experience.get("state", {})
+            next_state = experience.get("next_state", {})
 
             total_reward += reward
 
             # Create memory from significant experiences (high reward or punishment)
-            importance = min(1.0, abs(reward) / 10.0)  # Normalize reward to [0, 1]
+            importance = min(
+                1.0, abs(reward) / 10.0
+            )  # Normalize reward to [0, 1]
             if importance > 0.2:  # Only store moderately important experiences
                 memory = Memory(
                     content={
-                        'action': action,
-                        'reward': reward,
-                        'state': state,
-                        'next_state': next_state
+                        "action": action,
+                        "reward": reward,
+                        "state": state,
+                        "next_state": next_state,
                     },
                     importance=importance,
                     timestamp=self._time,
-                    memory_type='reward',
-                    emotional_valence=np.tanh(reward)  # Map reward to [-1, 1]
+                    memory_type="reward",
+                    emotional_valence=np.tanh(reward),  # Map reward to [-1, 1]
                 )
                 self.memory.append(memory)
                 memories_created += 1
@@ -1274,10 +1584,12 @@ class AliveLoopNode:
                 self.update_sadness(learning_rate * abs(reward) * 0.05)
 
             # Update energy predictions based on state transitions
-            if 'energy' in state and 'energy' in next_state:
-                energy_change = next_state['energy'] - state['energy']
+            if "energy" in state and "energy" in next_state:
+                energy_change = next_state["energy"] - state["energy"]
                 # Adjust predicted energy based on learned patterns
-                self.predicted_energy = max(0, self.predicted_energy + learning_rate * energy_change)
+                self.predicted_energy = max(
+                    0, self.predicted_energy + learning_rate * energy_change
+                )
 
         # Trigger memory cleanup if we added many memories
         if memories_created > 10:
@@ -1287,12 +1599,12 @@ class AliveLoopNode:
         avg_reward = total_reward / len(experiences) if experiences else 0.0
 
         return {
-            'total_reward': total_reward,
-            'avg_reward': avg_reward,
-            'memories_created': memories_created,
-            'learning_rate': learning_rate,
-            'current_energy': self.energy,
-            'predicted_energy': self.predicted_energy
+            "total_reward": total_reward,
+            "avg_reward": avg_reward,
+            "memories_created": memories_created,
+            "learning_rate": learning_rate,
+            "current_energy": self.energy,
+            "predicted_energy": self.predicted_energy,
         }
 
     def clear_anxiety(self):
@@ -1313,7 +1625,10 @@ class AliveLoopNode:
         current_time = self._time
 
         # Check cooldown period
-        if current_time - self.last_help_signal_time < self.help_signal_cooldown:
+        if (
+            current_time - self.last_help_signal_time
+            < self.help_signal_cooldown
+        ):
             return False
 
         # Check help signal limits
@@ -1326,17 +1641,22 @@ class AliveLoopNode:
 
         return True
 
-    def send_help_signal(self, nearby_nodes: list['AliveLoopNode']) -> list['AliveLoopNode']:
+    def send_help_signal(
+        self, nearby_nodes: list["AliveLoopNode"]
+    ) -> list["AliveLoopNode"]:
         """
         Send help signal to nearby trusted nodes when experiencing anxiety overwhelm.
-        
+
         Args:
             nearby_nodes: List of nodes within communication range
-            
+
         Returns:
             List of nodes that responded to help signal
         """
-        if not self.check_anxiety_overwhelm() or not self.can_send_help_signal():
+        if (
+            not self.check_anxiety_overwhelm()
+            or not self.can_send_help_signal()
+        ):
             return []
 
         # Create help signal content
@@ -1347,20 +1667,27 @@ class AliveLoopNode:
             "urgency": min(1.0, self.anxiety / 10.0),
             "requesting_node": self.node_id,
             "timestamp": self._time,
-            "unload_capacity_needed": min(self.anxiety - self.anxiety_threshold, self.anxiety_unload_capacity)
+            "unload_capacity_needed": min(
+                self.anxiety - self.anxiety_threshold,
+                self.anxiety_unload_capacity,
+            ),
         }
 
         # Filter nodes by trust level and proximity
         trusted_helpers = []
         for node in nearby_nodes:
-            if (node.node_id != self.node_id and
-                self.trust_network.get(node.node_id, 0.5) >= 0.4 and
-                node.energy >= 3.0 and  # Helper needs sufficient energy
-                node.anxiety < 6.0):    # Helper shouldn't be overwhelmed themselves
+            if (
+                node.node_id != self.node_id
+                and self.trust_network.get(node.node_id, 0.5) >= 0.4
+                and node.energy >= 3.0  # Helper needs sufficient energy
+                and node.anxiety < 6.0
+            ):  # Helper shouldn't be overwhelmed themselves
                 trusted_helpers.append(node)
 
         if not trusted_helpers:
-            logger.debug(f"Node {self.node_id}: No trusted helpers available for anxiety help")
+            logger.debug(
+                f"Node {self.node_id}: No trusted helpers available for anxiety help"
+            )
             return []
 
         # Send help signal to trusted nodes
@@ -1369,7 +1696,7 @@ class AliveLoopNode:
             signal_type="anxiety_help",
             content=help_content,
             urgency=help_content["urgency"],
-            requires_response=True
+            requires_response=True,
         )
 
         # Update help signal tracking
@@ -1378,23 +1705,37 @@ class AliveLoopNode:
 
         # Record the help request in memory
         help_memory = Memory(
-            content={"action": "sent_help_request", "anxiety_level": self.anxiety},
+            content={
+                "action": "sent_help_request",
+                "anxiety_level": self.anxiety,
+            },
             importance=0.8,
             timestamp=self._time,
             memory_type="help_signal",
-            emotional_valence=-0.3  # Slightly negative as it indicates distress
+            emotional_valence=-0.3,  # Slightly negative as it indicates distress
         )
         self.memory.append(help_memory)
 
-        logger.info(f"Node {self.node_id}: Sent anxiety help signal to {len(trusted_helpers)} trusted nodes")
+        logger.info(
+            f"Node {self.node_id}: Sent anxiety help signal to {len(trusted_helpers)} trusted nodes"
+        )
 
-        return [node for node in trusted_helpers if any(r.source_id == node.node_id for r in responses)]
+        return [
+            node
+            for node in trusted_helpers
+            if any(r.source_id == node.node_id for r in responses)
+        ]
 
-    def _process_anxiety_help_signal(self, signal: SocialSignal) -> SocialSignal | None:
+    def _process_anxiety_help_signal(
+        self, signal: SocialSignal
+    ) -> SocialSignal | None:
         """Process an anxiety help request from another node"""
         help_content = signal.content
 
-        if not isinstance(help_content, dict) or help_content.get("type") != "anxiety_help_request":
+        if (
+            not isinstance(help_content, dict)
+            or help_content.get("type") != "anxiety_help_request"
+        ):
             return None
 
         requesting_node_id = help_content.get("requesting_node")
@@ -1403,16 +1744,18 @@ class AliveLoopNode:
 
         # Check if we can provide help
         trust_level = self.trust_network.get(requesting_node_id, 0.5)
-        if (trust_level < 0.3 or  # Not trusted enough
-            self.energy < 3.0 or  # Not enough energy
-            self.anxiety > 7.0):  # Too anxious ourselves
+        if (
+            trust_level < 0.3  # Not trusted enough
+            or self.energy < 3.0  # Not enough energy
+            or self.anxiety > 7.0
+        ):  # Too anxious ourselves
             return None
 
         # Provide anxiety support
         anxiety_reduction = min(
             help_content.get("unload_capacity_needed", 1.0),
             self.anxiety_unload_capacity,
-            self.energy - 2.0  # Keep some energy for ourselves
+            self.energy - 2.0,  # Keep some energy for ourselves
         )
 
         # Create help response
@@ -1421,16 +1764,20 @@ class AliveLoopNode:
             "helper_node": self.node_id,
             "anxiety_reduction_offered": anxiety_reduction,
             "support_message": "You're not alone. This will pass.",
-            "timestamp": self._time
+            "timestamp": self._time,
         }
 
         # Record helping action in memory
         help_memory = Memory(
-            content={"action": "provided_help", "to_node": requesting_node_id, "reduction": anxiety_reduction},
+            content={
+                "action": "provided_help",
+                "to_node": requesting_node_id,
+                "reduction": anxiety_reduction,
+            },
             importance=0.7,
             timestamp=self._time,
             memory_type="help_given",
-            emotional_valence=0.4  # Positive for helping others
+            emotional_valence=0.4,  # Positive for helping others
         )
         self.memory.append(help_memory)
 
@@ -1442,20 +1789,25 @@ class AliveLoopNode:
         current_trust = self.trust_network.get(requesting_node_id, 0.5)
         self.trust_network[requesting_node_id] = min(1.0, current_trust + 0.1)
 
-        logger.debug(f"Node {self.node_id}: Provided anxiety help to node {requesting_node_id}")
+        logger.debug(
+            f"Node {self.node_id}: Provided anxiety help to node {requesting_node_id}"
+        )
 
         return SocialSignal(
             content=help_response,
             signal_type="anxiety_help_response",
             urgency=0.7,
-            source_id=self.node_id
+            source_id=self.node_id,
         )
 
     def _process_anxiety_help_response(self, signal: SocialSignal):
         """Process a help response from another node"""
         help_response = signal.content
 
-        if not isinstance(help_response, dict) or help_response.get("type") != "anxiety_help_response":
+        if (
+            not isinstance(help_response, dict)
+            or help_response.get("type") != "anxiety_help_response"
+        ):
             return
 
         helper_node_id = help_response.get("helper_node")
@@ -1482,30 +1834,34 @@ class AliveLoopNode:
                 "from_node": helper_node_id,
                 "anxiety_before": old_anxiety,
                 "anxiety_after": self.anxiety,
-                "message": help_response.get("support_message", "")
+                "message": help_response.get("support_message", ""),
             },
             importance=0.9,
             timestamp=self._time,
             memory_type="help_received",
-            emotional_valence=0.6  # Positive for receiving help
+            emotional_valence=0.6,  # Positive for receiving help
         )
         self.memory.append(help_memory)
 
         self.received_help_this_period = True
 
-        logger.info(f"Node {self.node_id}: Received anxiety help from node {helper_node_id}, "
-                   f"anxiety reduced from {old_anxiety:.2f} to {self.anxiety:.2f}")
+        logger.info(
+            f"Node {self.node_id}: Received anxiety help from node {helper_node_id}, "
+            f"anxiety reduced from {old_anxiety:.2f} to {self.anxiety:.2f}"
+        )
 
     # Joy and Positive Emotion Sharing Methods
 
-    def send_joy_share_signal(self, nearby_nodes: list['AliveLoopNode'], joy_content: dict[str, Any]) -> list['AliveLoopNode']:
+    def send_joy_share_signal(
+        self, nearby_nodes: list["AliveLoopNode"], joy_content: dict[str, Any]
+    ) -> list["AliveLoopNode"]:
         """
         Share positive emotions and joy with nearby nodes.
-        
+
         Args:
             nearby_nodes: List of nodes within communication range
             joy_content: Dictionary containing joy details (achievement, celebration, etc.)
-            
+
         Returns:
             List of nodes that received the joy signal
         """
@@ -1518,18 +1874,22 @@ class AliveLoopNode:
             "source_node": self.node_id,
             "emotional_valence": 0.8,  # High positive valence
             "celebration_type": joy_content.get("type", "general"),
-            "description": joy_content.get("description", "Sharing positive energy"),
+            "description": joy_content.get(
+                "description", "Sharing positive energy"
+            ),
             "intensity": joy_content.get("intensity", 0.7),
             "timestamp": self._time,
-            "invite_celebration": joy_content.get("invite_celebration", False)
+            "invite_celebration": joy_content.get("invite_celebration", False),
         }
 
         # Filter nodes by proximity and trust
         joy_recipients = []
         for node in nearby_nodes:
-            if (node.node_id != self.node_id and
-                self.trust_network.get(node.node_id, 0.5) >= 0.3 and
-                node.energy >= 1.0):  # Node needs some energy to appreciate joy
+            if (
+                node.node_id != self.node_id
+                and self.trust_network.get(node.node_id, 0.5) >= 0.3
+                and node.energy >= 1.0
+            ):  # Node needs some energy to appreciate joy
                 joy_recipients.append(node)
 
         if not joy_recipients:
@@ -1541,30 +1901,40 @@ class AliveLoopNode:
             signal_type="joy_share",
             content=joy_signal_content,
             urgency=0.3,  # Low urgency for positive sharing
-            requires_response=False
+            requires_response=False,
         )
 
         # Record the joy sharing in memory
         joy_memory = Memory(
-            content={"action": "shared_joy", "type": joy_content.get("type", "general")},
+            content={
+                "action": "shared_joy",
+                "type": joy_content.get("type", "general"),
+            },
             importance=0.6,
             timestamp=self._time,
             memory_type="joy_shared",
-            emotional_valence=0.8  # Positive for sharing joy
+            emotional_valence=0.8,  # Positive for sharing joy
         )
         self.memory.append(joy_memory)
 
         # Boost own emotional state from sharing
-        self.emotional_state["valence"] = min(1.0, self.emotional_state["valence"] + 0.1)
+        self.emotional_state["valence"] = min(
+            1.0, self.emotional_state["valence"] + 0.1
+        )
 
-        logger.info(f"Node {self.node_id}: Shared joy with {len(joy_recipients)} nodes")
+        logger.info(
+            f"Node {self.node_id}: Shared joy with {len(joy_recipients)} nodes"
+        )
         return joy_recipients
 
     def _process_joy_share_signal(self, signal: SocialSignal):
         """Process a joy sharing signal from another node"""
         joy_content = signal.content
 
-        if not isinstance(joy_content, dict) or joy_content.get("type") != "joy_share":
+        if (
+            not isinstance(joy_content, dict)
+            or joy_content.get("type") != "joy_share"
+        ):
             return
 
         source_node_id = joy_content.get("source_node")
@@ -1579,12 +1949,19 @@ class AliveLoopNode:
         emotional_boost = joy_intensity * trust_level * 0.5
 
         # Amplify boost if we're in need (high grief/sadness, low joy, low hope)
-        emotional_need = (self.grief * 0.2) + (self.sadness * 0.2) + max(0, (2.0 - self.joy) * 0.1) + max(0, (2.0 - self.hope) * 0.1)
+        emotional_need = (
+            (self.grief * 0.2)
+            + (self.sadness * 0.2)
+            + max(0, (2.0 - self.joy) * 0.1)
+            + max(0, (2.0 - self.hope) * 0.1)
+        )
         amplified_boost = emotional_boost * (1.0 + emotional_need)
 
         # Update all relevant emotional states
         # Boost emotional valence
-        self.emotional_state["valence"] = min(1.0, self.emotional_state["valence"] + amplified_boost)
+        self.emotional_state["valence"] = min(
+            1.0, self.emotional_state["valence"] + amplified_boost
+        )
 
         # Increase joy directly
         joy_increase = min(amplified_boost * 1.5, 2.0)  # Cap the increase
@@ -1607,7 +1984,9 @@ class AliveLoopNode:
             self.update_sadness(-sadness_reduction)
 
         if self.grief > 0:
-            grief_reduction = amplified_boost * 0.4  # Grief is harder to reduce
+            grief_reduction = (
+                amplified_boost * 0.4
+            )  # Grief is harder to reduce
             self.update_grief(-grief_reduction)
 
         # NEW: Reduce anger and frustration through joy
@@ -1636,30 +2015,38 @@ class AliveLoopNode:
             content={
                 "action": "received_joy",
                 "from_node": source_node_id,
-                "celebration_type": joy_content.get("celebration_type", "general"),
+                "celebration_type": joy_content.get(
+                    "celebration_type", "general"
+                ),
                 "description": joy_content.get("description", ""),
-                "emotional_boost": amplified_boost
+                "emotional_boost": amplified_boost,
             },
             importance=0.6,
             timestamp=self._time,
             memory_type="joy_received",
-            emotional_valence=0.7  # Positive for receiving joy
+            emotional_valence=0.7,  # Positive for receiving joy
         )
         self.memory.append(joy_memory)
 
-        logger.debug(f"Node {self.node_id}: Received joy from node {source_node_id}, "
-                    f"emotional boost: {emotional_boost:.2f}, composite health: {self.calculate_composite_emotional_health():.2f}")
+        logger.debug(
+            f"Node {self.node_id}: Received joy from node {source_node_id}, "
+            f"emotional boost: {emotional_boost:.2f}, composite health: {self.calculate_composite_emotional_health():.2f}"
+        )
 
     # Grief and Emotional Support Methods
 
-    def send_grief_support_request(self, nearby_nodes: list['AliveLoopNode'], grief_details: dict[str, Any]) -> list['AliveLoopNode']:
+    def send_grief_support_request(
+        self,
+        nearby_nodes: list["AliveLoopNode"],
+        grief_details: dict[str, Any],
+    ) -> list["AliveLoopNode"]:
         """
         Request emotional support during times of grief or sadness.
-        
+
         Args:
             nearby_nodes: List of nodes within communication range
             grief_details: Details about the grief or emotional support needed
-            
+
         Returns:
             List of nodes that responded with support
         """
@@ -1673,23 +2060,29 @@ class AliveLoopNode:
             "emotional_valence": grief_details.get("emotional_valence", -0.6),
             "support_type": grief_details.get("support_type", "emotional"),
             "grief_intensity": grief_details.get("intensity", 0.7),
-            "description": grief_details.get("description", "Requesting emotional support"),
+            "description": grief_details.get(
+                "description", "Requesting emotional support"
+            ),
             "urgency": min(1.0, grief_details.get("intensity", 0.7)),
-            "timestamp": self._time
+            "timestamp": self._time,
         }
 
         # Filter nodes by trust and availability
         trusted_supporters = []
         for node in nearby_nodes:
-            if (node.node_id != self.node_id and
-                self.trust_network.get(node.node_id, 0.5) >= 0.4 and
-                node.energy >= 3.0 and  # Supporter needs energy to help
-                node.anxiety < 8.0 and  # Supporter shouldn't be overwhelmed
-                node.emotional_state.get("valence", 0) > -0.5):  # Supporter not too sad themselves
+            if (
+                node.node_id != self.node_id
+                and self.trust_network.get(node.node_id, 0.5) >= 0.4
+                and node.energy >= 3.0  # Supporter needs energy to help
+                and node.anxiety < 8.0  # Supporter shouldn't be overwhelmed
+                and node.emotional_state.get("valence", 0) > -0.5
+            ):  # Supporter not too sad themselves
                 trusted_supporters.append(node)
 
         if not trusted_supporters:
-            logger.debug(f"Node {self.node_id}: No available supporters for grief support")
+            logger.debug(
+                f"Node {self.node_id}: No available supporters for grief support"
+            )
             return []
 
         # Send grief support request
@@ -1698,28 +2091,42 @@ class AliveLoopNode:
             signal_type="grief_support_request",
             content=support_request,
             urgency=support_request["urgency"],
-            requires_response=True
+            requires_response=True,
         )
 
         # Record the support request in memory
         support_memory = Memory(
-            content={"action": "requested_grief_support", "grief_type": grief_details.get("support_type", "emotional")},
+            content={
+                "action": "requested_grief_support",
+                "grief_type": grief_details.get("support_type", "emotional"),
+            },
             importance=0.8,
             timestamp=self._time,
             memory_type="support_requested",
-            emotional_valence=-0.4  # Slightly negative as it indicates distress
+            emotional_valence=-0.4,  # Slightly negative as it indicates distress
         )
         self.memory.append(support_memory)
 
-        logger.info(f"Node {self.node_id}: Requested grief support from {len(trusted_supporters)} trusted nodes")
+        logger.info(
+            f"Node {self.node_id}: Requested grief support from {len(trusted_supporters)} trusted nodes"
+        )
 
-        return [node for node in trusted_supporters if any(r.source_id == node.node_id for r in responses)]
+        return [
+            node
+            for node in trusted_supporters
+            if any(r.source_id == node.node_id for r in responses)
+        ]
 
-    def _process_grief_support_request_signal(self, signal: SocialSignal) -> SocialSignal | None:
+    def _process_grief_support_request_signal(
+        self, signal: SocialSignal
+    ) -> SocialSignal | None:
         """Process a grief support request from another node"""
         support_request = signal.content
 
-        if not isinstance(support_request, dict) or support_request.get("type") != "grief_support_request":
+        if (
+            not isinstance(support_request, dict)
+            or support_request.get("type") != "grief_support_request"
+        ):
             return None
 
         requesting_node_id = support_request.get("requesting_node")
@@ -1730,19 +2137,22 @@ class AliveLoopNode:
         trust_level = self.trust_network.get(requesting_node_id, 0.5)
 
         # Enhanced decision logic using new emotional states and predictions
-        predicted_anxiety = self.predict_emotional_state('anxiety', 2)
-        predicted_energy = self.predict_emotional_state('energy', 2)
+        predicted_anxiety = self.predict_emotional_state("anxiety", 2)
+        predicted_energy = self.predict_emotional_state("energy", 2)
 
         # Can't help if we're too compromised emotionally or will be soon
-        if (trust_level < 0.3 or  # Not trusted enough
-            self.energy < 3.0 or  # Not enough energy
-            predicted_energy < 2.0 or  # Energy will be too low
-            self.anxiety > 8.0 or  # Too anxious ourselves
-            predicted_anxiety > 7.0 or  # Will be too anxious
-            self.grief > 4.0 or  # Too much grief ourselves
-            self.sadness > 4.0 or  # Too sad ourselves
-            (self.sadness + self.grief) > 6.0 or  # Combined negative emotions too high
-            self.emotional_state.get("valence", 0) < -0.6):  # General negative state
+        if (
+            trust_level < 0.3  # Not trusted enough
+            or self.energy < 3.0  # Not enough energy
+            or predicted_energy < 2.0  # Energy will be too low
+            or self.anxiety > 8.0  # Too anxious ourselves
+            or predicted_anxiety > 7.0  # Will be too anxious
+            or self.grief > 4.0  # Too much grief ourselves
+            or self.sadness > 4.0  # Too sad ourselves
+            or (self.sadness + self.grief)
+            > 6.0  # Combined negative emotions too high
+            or self.emotional_state.get("valence", 0) < -0.6
+        ):  # General negative state
             return None
 
         # Provide emotional support - enhanced calculation using new emotional states
@@ -1757,7 +2167,11 @@ class AliveLoopNode:
         # Reduce support if we have our own grief/sadness
         emotional_burden = (self.grief * 0.3) + (self.sadness * 0.25)
 
-        support_amount = min(grief_intensity * 0.8, base_support + joy_boost - emotional_burden, 2.5)
+        support_amount = min(
+            grief_intensity * 0.8,
+            base_support + joy_boost - emotional_burden,
+            2.5,
+        )
         support_amount = max(0.1, support_amount)  # Minimum support level
 
         # Create support response
@@ -1767,16 +2181,20 @@ class AliveLoopNode:
             "emotional_support_offered": support_amount,
             "comfort_message": "You're not alone in this. I'm here to support you.",
             "support_type": support_request.get("support_type", "emotional"),
-            "timestamp": self._time
+            "timestamp": self._time,
         }
 
         # Record providing support in memory
         support_memory = Memory(
-            content={"action": "provided_grief_support", "to_node": requesting_node_id, "support": support_amount},
+            content={
+                "action": "provided_grief_support",
+                "to_node": requesting_node_id,
+                "support": support_amount,
+            },
             importance=0.7,
             timestamp=self._time,
             memory_type="support_given",
-            emotional_valence=0.3  # Positive for helping others despite grief context
+            emotional_valence=0.3,  # Positive for helping others despite grief context
         )
         self.memory.append(support_memory)
 
@@ -1788,24 +2206,31 @@ class AliveLoopNode:
         current_trust = self.trust_network.get(requesting_node_id, 0.5)
         self.trust_network[requesting_node_id] = min(1.0, current_trust + 0.1)
 
-        logger.debug(f"Node {self.node_id}: Provided grief support to node {requesting_node_id}")
+        logger.debug(
+            f"Node {self.node_id}: Provided grief support to node {requesting_node_id}"
+        )
 
         return SocialSignal(
             content=support_response,
             signal_type="grief_support_response",
             urgency=0.6,
-            source_id=self.node_id
+            source_id=self.node_id,
         )
 
     def _process_grief_support_response_signal(self, signal: SocialSignal):
         """Process a grief support response from another node"""
         support_response = signal.content
 
-        if not isinstance(support_response, dict) or support_response.get("type") != "grief_support_response":
+        if (
+            not isinstance(support_response, dict)
+            or support_response.get("type") != "grief_support_response"
+        ):
             return
 
         supporter_node_id = support_response.get("supporter_node")
-        emotional_support = support_response.get("emotional_support_offered", 0.0)
+        emotional_support = support_response.get(
+            "emotional_support_offered", 0.0
+        )
 
         if supporter_node_id is None or emotional_support <= 0:
             return
@@ -1813,7 +2238,9 @@ class AliveLoopNode:
         # Apply emotional support - gradual improvement in emotional valence
         old_valence = self.emotional_state["valence"]
         valence_improvement = emotional_support * 0.3
-        self.emotional_state["valence"] = min(1.0, self.emotional_state["valence"] + valence_improvement)
+        self.emotional_state["valence"] = min(
+            1.0, self.emotional_state["valence"] + valence_improvement
+        )
 
         # Increase calm level
         self.calm = min(5.0, self.calm + emotional_support * 0.2)
@@ -1834,25 +2261,32 @@ class AliveLoopNode:
                 "from_node": supporter_node_id,
                 "valence_before": old_valence,
                 "valence_after": self.emotional_state["valence"],
-                "message": support_response.get("comfort_message", "")
+                "message": support_response.get("comfort_message", ""),
             },
             importance=0.9,
             timestamp=self._time,
             memory_type="support_received",
-            emotional_valence=0.4  # Positive for receiving support
+            emotional_valence=0.4,  # Positive for receiving support
         )
         self.memory.append(support_memory)
 
-        logger.info(f"Node {self.node_id}: Received grief support from node {supporter_node_id}, "
-                   f"emotional valence improved from {old_valence:.2f} to {self.emotional_state['valence']:.2f}")
+        logger.info(
+            f"Node {self.node_id}: Received grief support from node {supporter_node_id}, "
+            f"emotional valence improved from {old_valence:.2f} to {self.emotional_state['valence']:.2f}"
+        )
 
     # Celebration and Comfort Methods
 
-    def _process_celebration_invite_signal(self, signal: SocialSignal) -> SocialSignal | None:
+    def _process_celebration_invite_signal(
+        self, signal: SocialSignal
+    ) -> SocialSignal | None:
         """Process an invitation to celebrate something"""
         celebration_invite = signal.content
 
-        if not isinstance(celebration_invite, dict) or celebration_invite.get("type") != "celebration_invite":
+        if (
+            not isinstance(celebration_invite, dict)
+            or celebration_invite.get("type") != "celebration_invite"
+        ):
             return None
 
         inviter_node_id = celebration_invite.get("inviter_node")
@@ -1861,14 +2295,18 @@ class AliveLoopNode:
 
         # Accept invitation based on energy, trust, and current emotional state
         trust_level = self.trust_network.get(inviter_node_id, 0.5)
-        if (trust_level >= 0.4 and
-            self.energy >= 2.0 and
-            self.anxiety < 6.0 and
-            self.emotional_state.get("valence", 0) > -0.3):
+        if (
+            trust_level >= 0.4
+            and self.energy >= 2.0
+            and self.anxiety < 6.0
+            and self.emotional_state.get("valence", 0) > -0.3
+        ):
 
             # Participate in celebration - boost emotions
             celebration_boost = 0.4 * trust_level
-            self.emotional_state["valence"] = min(1.0, self.emotional_state["valence"] + celebration_boost)
+            self.emotional_state["valence"] = min(
+                1.0, self.emotional_state["valence"] + celebration_boost
+            )
             self.calm = min(5.0, self.calm + celebration_boost * 0.2)
 
             # Energy cost for celebrating
@@ -1879,30 +2317,43 @@ class AliveLoopNode:
 
             # Record celebration participation
             celebration_memory = Memory(
-                content={"action": "participated_in_celebration", "with_node": inviter_node_id},
+                content={
+                    "action": "participated_in_celebration",
+                    "with_node": inviter_node_id,
+                },
                 importance=0.6,
                 timestamp=self._time,
                 memory_type="celebration",
-                emotional_valence=0.6
+                emotional_valence=0.6,
             )
             self.memory.append(celebration_memory)
 
-            logger.debug(f"Node {self.node_id}: Participated in celebration with node {inviter_node_id}")
+            logger.debug(
+                f"Node {self.node_id}: Participated in celebration with node {inviter_node_id}"
+            )
 
             return SocialSignal(
-                content={"type": "celebration_acceptance", "participant_node": self.node_id},
+                content={
+                    "type": "celebration_acceptance",
+                    "participant_node": self.node_id,
+                },
                 signal_type="celebration_response",
                 urgency=0.3,
-                source_id=self.node_id
+                source_id=self.node_id,
             )
 
         return None
 
-    def _process_comfort_request_signal(self, signal: SocialSignal) -> SocialSignal | None:
+    def _process_comfort_request_signal(
+        self, signal: SocialSignal
+    ) -> SocialSignal | None:
         """Process a request for general comfort/support"""
         comfort_request = signal.content
 
-        if not isinstance(comfort_request, dict) or comfort_request.get("type") != "comfort_request":
+        if (
+            not isinstance(comfort_request, dict)
+            or comfort_request.get("type") != "comfort_request"
+        ):
             return None
 
         requesting_node_id = comfort_request.get("requesting_node")
@@ -1911,9 +2362,7 @@ class AliveLoopNode:
 
         # Provide comfort if able
         trust_level = self.trust_network.get(requesting_node_id, 0.5)
-        if (trust_level >= 0.3 and
-            self.energy >= 2.0 and
-            self.anxiety < 7.0):
+        if trust_level >= 0.3 and self.energy >= 2.0 and self.anxiety < 7.0:
 
             comfort_amount = min(1.5, self.calm * 0.4)
 
@@ -1923,22 +2372,26 @@ class AliveLoopNode:
                 "comforter_node": self.node_id,
                 "comfort_offered": comfort_amount,
                 "message": "Sending you comfort and support.",
-                "timestamp": self._time
+                "timestamp": self._time,
             }
 
             # Cost of providing comfort
             self.energy = max(1.0, self.energy - comfort_amount * 0.2)
 
             # Strengthen relationship
-            self.trust_network[requesting_node_id] = min(1.0, trust_level + 0.05)
+            self.trust_network[requesting_node_id] = min(
+                1.0, trust_level + 0.05
+            )
 
-            logger.debug(f"Node {self.node_id}: Provided comfort to node {requesting_node_id}")
+            logger.debug(
+                f"Node {self.node_id}: Provided comfort to node {requesting_node_id}"
+            )
 
             return SocialSignal(
                 content=comfort_response,
                 signal_type="comfort_response",
                 urgency=0.4,
-                source_id=self.node_id
+                source_id=self.node_id,
             )
 
         return None
@@ -1947,7 +2400,10 @@ class AliveLoopNode:
         """Process a comfort response from another node"""
         comfort_response = signal.content
 
-        if not isinstance(comfort_response, dict) or comfort_response.get("type") != "comfort_response":
+        if (
+            not isinstance(comfort_response, dict)
+            or comfort_response.get("type") != "comfort_response"
+        ):
             return
 
         comforter_node_id = comfort_response.get("comforter_node")
@@ -1962,19 +2418,26 @@ class AliveLoopNode:
             self.anxiety = max(0, self.anxiety - comfort_amount * 0.3)
 
         # Improve emotional state slightly
-        self.emotional_state["valence"] = min(1.0, self.emotional_state["valence"] + comfort_amount * 0.2)
+        self.emotional_state["valence"] = min(
+            1.0, self.emotional_state["valence"] + comfort_amount * 0.2
+        )
 
         # Record received comfort
         comfort_memory = Memory(
-            content={"action": "received_comfort", "from_node": comforter_node_id},
+            content={
+                "action": "received_comfort",
+                "from_node": comforter_node_id,
+            },
             importance=0.6,
             timestamp=self._time,
             memory_type="comfort_received",
-            emotional_valence=0.3
+            emotional_valence=0.3,
         )
         self.memory.append(comfort_memory)
 
-        logger.debug(f"Node {self.node_id}: Received comfort from node {comforter_node_id}")
+        logger.debug(
+            f"Node {self.node_id}: Received comfort from node {comforter_node_id}"
+        )
 
     def apply_calm_effect(self):
         """Apply calm effect to reduce anxiety naturally"""
@@ -2001,7 +2464,11 @@ class AliveLoopNode:
             "received_help_recently": self.received_help_this_period,
             "anxiety_threshold": self.anxiety_threshold,
             "trust_network_size": len(self.trust_network),
-            "avg_trust_level": np.mean(list(self.trust_network.values())) if self.trust_network else 0.0
+            "avg_trust_level": (
+                np.mean(list(self.trust_network.values()))
+                if self.trust_network
+                else 0.0
+            ),
         }
 
     # Example helper methods (add or adapt depending on existing architecture)
@@ -2027,13 +2494,17 @@ class AliveLoopNode:
         if not self.energy_sharing_enabled or amount <= 0:
             return False
         # Apply drain resistance as a safeguard
-        effective_amount = amount * (1.0 - (1.0 - self.energy_drain_resistance))
-        self.energy_sharing_history.append({
-            "t": get_timestamp(),
-            "recipient": recipient_id,
-            "requested": amount,
-            "transferred": effective_amount
-        })
+        effective_amount = amount * (
+            1.0 - (1.0 - self.energy_drain_resistance)
+        )
+        self.energy_sharing_history.append(
+            {
+                "t": get_timestamp(),
+                "recipient": recipient_id,
+                "requested": amount,
+                "transferred": effective_amount,
+            }
+        )
         # Implement actual energy transfer logic elsewhere
         return True
 
@@ -2041,26 +2512,30 @@ class AliveLoopNode:
         """Activate emergency energy conservation protocols"""
         if not self.emergency_mode:
             self.emergency_mode = True
-            logger.warning(f"Node {self.node_id}: Emergency energy conservation activated")
+            logger.warning(
+                f"Node {self.node_id}: Emergency energy conservation activated"
+            )
 
             # Save current state for restoration later
-            if not hasattr(self, '_pre_emergency_state'):
+            if not hasattr(self, "_pre_emergency_state"):
                 self._pre_emergency_state = {
-                    'communication_range': self.communication_range,
-                    'max_communications': self.max_communications_per_step
+                    "communication_range": self.communication_range,
+                    "max_communications": self.max_communications_per_step,
                 }
 
             # Drastically reduce energy consumption for non-critical operations
             self.communication_range *= 0.3  # Reduce to 30% of normal range
-            self.max_communications_per_step = max(1, self.max_communications_per_step // 4)  # Reduce to 25%
+            self.max_communications_per_step = max(
+                1, self.max_communications_per_step // 4
+            )  # Reduce to 25%
 
             # Request emergency energy from trusted network
-            if hasattr(self, 'trust_network') and self.trust_network:
+            if hasattr(self, "trust_network") and self.trust_network:
                 emergency_energy = self.request_distributed_energy(1.0)
                 self.energy += emergency_energy
 
             # Activate ultra-conservative energy recovery mode
-            if not hasattr(self, '_emergency_recovery_mode'):
+            if not hasattr(self, "_emergency_recovery_mode"):
                 self._emergency_recovery_mode = True
 
             # Activate survival mode if energy is critically low
@@ -2071,11 +2546,17 @@ class AliveLoopNode:
         """Activate ultra-low energy survival mode"""
         if not self.survival_mode_active:
             self.survival_mode_active = True
-            logger.critical(f"Node {self.node_id}: Survival mode activated - minimal operations only")
+            logger.critical(
+                f"Node {self.node_id}: Survival mode activated - minimal operations only"
+            )
 
             # Extreme energy conservation measures
-            self.communication_range *= 0.2  # Further reduce to 20% of emergency levels
-            self.max_communications_per_step = 1  # Only 1 communication per step
+            self.communication_range *= (
+                0.2  # Further reduce to 20% of emergency levels
+            )
+            self.max_communications_per_step = (
+                1  # Only 1 communication per step
+            )
 
             # Increase energy conservation multiplier
             self.energy_conservation_multiplier = 2.0
@@ -2091,17 +2572,23 @@ class AliveLoopNode:
         """Deactivate emergency energy conservation protocols"""
         if self.emergency_mode:
             self.emergency_mode = False
-            logger.info(f"Node {self.node_id}: Emergency energy conservation deactivated")
+            logger.info(
+                f"Node {self.node_id}: Emergency energy conservation deactivated"
+            )
 
             # Restore normal operation parameters
-            if hasattr(self, '_pre_emergency_state'):
-                self.communication_range = self._pre_emergency_state['communication_range']
-                self.max_communications_per_step = self._pre_emergency_state['max_communications']
-                delattr(self, '_pre_emergency_state')
+            if hasattr(self, "_pre_emergency_state"):
+                self.communication_range = self._pre_emergency_state[
+                    "communication_range"
+                ]
+                self.max_communications_per_step = self._pre_emergency_state[
+                    "max_communications"
+                ]
+                delattr(self, "_pre_emergency_state")
 
             # Deactivate emergency recovery mode
-            if hasattr(self, '_emergency_recovery_mode'):
-                delattr(self, '_emergency_recovery_mode')
+            if hasattr(self, "_emergency_recovery_mode"):
+                delattr(self, "_emergency_recovery_mode")
 
             # Deactivate survival mode if active
             if self.survival_mode_active:
@@ -2109,21 +2596,29 @@ class AliveLoopNode:
 
     def detect_energy_attack(self):
         """Detect potential energy drain attacks"""
-        if len(self.energy_drain_events) < 2:  # Lower threshold for faster detection
+        if (
+            len(self.energy_drain_events) < 2
+        ):  # Lower threshold for faster detection
             return False
 
         # Check for rapid energy loss pattern
-        recent_events = list(self.energy_drain_events)[-3:] if len(self.energy_drain_events) >= 3 else list(self.energy_drain_events)
+        recent_events = (
+            list(self.energy_drain_events)[-3:]
+            if len(self.energy_drain_events) >= 3
+            else list(self.energy_drain_events)
+        )
 
         # Calculate energy loss rate over recent events
         if len(recent_events) < 2:
             return False
 
-        time_span = recent_events[-1]['timestamp'] - recent_events[0]['timestamp']
+        time_span = (
+            recent_events[-1]["timestamp"] - recent_events[0]["timestamp"]
+        )
         if time_span <= 0:
             return False
 
-        total_loss = sum(event['amount'] for event in recent_events)
+        total_loss = sum(event["amount"] for event in recent_events)
         loss_rate = total_loss / max(time_span, 1.0)
 
         # Progressive attack detection - more aggressive thresholds
@@ -2135,12 +2630,18 @@ class AliveLoopNode:
             self.threat_assessment_level = 3  # Maximum threat level
             # Immediately activate emergency protocols
             self.activate_emergency_energy_conservation()
-            logger.error(f"Node {self.node_id}: Critical energy attack detected! Loss rate: {loss_rate:.3f}")
+            logger.error(
+                f"Node {self.node_id}: Critical energy attack detected! Loss rate: {loss_rate:.3f}"
+            )
             return True
         elif loss_rate > attack_threshold:
             self.energy_attack_detected = True
-            self.threat_assessment_level = min(3, self.threat_assessment_level + 1)
-            logger.warning(f"Node {self.node_id}: Energy attack detected! Loss rate: {loss_rate:.3f}")
+            self.threat_assessment_level = min(
+                3, self.threat_assessment_level + 1
+            )
+            logger.warning(
+                f"Node {self.node_id}: Energy attack detected! Loss rate: {loss_rate:.3f}"
+            )
             return True
 
         return False
@@ -2151,18 +2652,23 @@ class AliveLoopNode:
             return 0.0
 
         # Find trusted nodes with sufficient energy
-        trusted_nodes = [(node_id, trust) for node_id, trust in self.trust_network.items()
-                        if trust > 0.7]
+        trusted_nodes = [
+            (node_id, trust)
+            for node_id, trust in self.trust_network.items()
+            if trust > 0.7
+        ]
 
         if not trusted_nodes:
             return 0.0
 
         # Record the request
-        self.energy_sharing_requests.append({
-            'timestamp': self._time,
-            'amount_requested': amount_needed,
-            'trusted_nodes': len(trusted_nodes)
-        })
+        self.energy_sharing_requests.append(
+            {
+                "timestamp": self._time,
+                "amount_requested": amount_needed,
+                "trusted_nodes": len(trusted_nodes),
+            }
+        )
 
         # Simple distributed energy sharing simulation
         # In practice, this would involve actual network communication
@@ -2182,32 +2688,48 @@ class AliveLoopNode:
     def adaptive_energy_allocation(self):
         """Adapt energy allocation based on current threat assessment"""
         # Calculate energy decline rate
-        if hasattr(self, 'last_energy_level'):
-            self.energy_decline_rate = max(0, self.last_energy_level - self.energy)
+        if hasattr(self, "last_energy_level"):
+            self.energy_decline_rate = max(
+                0, self.last_energy_level - self.energy
+            )
         else:
             self.energy_decline_rate = 0
         self.last_energy_level = self.energy
 
         # Store original thresholds to ensure they remain reasonable
-        original_emergency_threshold = getattr(self, '_original_emergency_threshold', 0.2)
-        original_normal_threshold = getattr(self, '_original_normal_threshold', 0.5)
+        original_emergency_threshold = getattr(
+            self, "_original_emergency_threshold", 0.2
+        )
+        original_normal_threshold = getattr(
+            self, "_original_normal_threshold", 0.5
+        )
 
         # Store original thresholds on first call
-        if not hasattr(self, '_original_emergency_threshold'):
-            self._original_emergency_threshold = self.emergency_energy_threshold
+        if not hasattr(self, "_original_emergency_threshold"):
+            self._original_emergency_threshold = (
+                self.emergency_energy_threshold
+            )
             self._original_normal_threshold = self.normal_energy_threshold
 
         base_energy_reserve = 0.1  # 10% base reserve
 
         # Increase energy reserve based on threat level and decline rate
         threat_multiplier = 1.0 + (self.threat_assessment_level * 0.1)
-        decline_multiplier = 1.0 + min(self.energy_decline_rate, 0.5)  # Cap at 50% increase
-        required_reserve = base_energy_reserve * threat_multiplier * decline_multiplier
+        decline_multiplier = 1.0 + min(
+            self.energy_decline_rate, 0.5
+        )  # Cap at 50% increase
+        required_reserve = (
+            base_energy_reserve * threat_multiplier * decline_multiplier
+        )
 
         # Adjust energy thresholds, but ensure they don't go below original values
         # This prevents the bug where thresholds become too low to trigger emergency mode
-        self.emergency_energy_threshold = max(original_emergency_threshold, required_reserve)
-        self.normal_energy_threshold = max(original_normal_threshold, required_reserve * 2)
+        self.emergency_energy_threshold = max(
+            original_emergency_threshold, required_reserve
+        )
+        self.normal_energy_threshold = max(
+            original_normal_threshold, required_reserve * 2
+        )
 
         # Activate appropriate conservation modes based on energy level
         # Check survival mode first (most critical)
@@ -2219,19 +2741,23 @@ class AliveLoopNode:
 
         # Check emergency mode (less critical than survival mode)
         # Only check if NOT in survival mode to allow emergency mode testing
-        if not getattr(self, 'survival_mode_active', False):
-            if self.energy <= self.emergency_energy_threshold and not self.emergency_mode:
+        if not getattr(self, "survival_mode_active", False):
+            if (
+                self.energy <= self.emergency_energy_threshold
+                and not self.emergency_mode
+            ):
                 self.activate_emergency_energy_conservation()
-            elif self.energy > self.normal_energy_threshold and self.emergency_mode:
+            elif (
+                self.energy > self.normal_energy_threshold
+                and self.emergency_mode
+            ):
                 self.deactivate_emergency_energy_conservation()
 
     def record_energy_drain(self, amount, source="unknown"):
         """Record energy drain event for attack detection"""
-        self.energy_drain_events.append({
-            'timestamp': self._time,
-            'amount': amount,
-            'source': source
-        })
+        self.energy_drain_events.append(
+            {"timestamp": self._time, "amount": amount, "source": source}
+        )
 
         # Check for attack patterns
         self.detect_energy_attack()
@@ -2310,7 +2836,7 @@ class AliveLoopNode:
         # Get current value and constraints
         current_value = getattr(self, emotion_name)
         emotion_config = self.emotion_schema[emotion_name]
-        min_val, max_val = emotion_config['range']
+        min_val, max_val = emotion_config["range"]
 
         # Update value within bounds
         new_value = max(min_val, min(max_val, current_value + delta))
@@ -2343,24 +2869,31 @@ class AliveLoopNode:
 
             # Record in dynamic emotion histories
             if emotion_name in self.emotion_histories:
-                if not self.emotion_histories[emotion_name] or self.emotion_histories[emotion_name][-1][0] != timestamp:
-                    self.emotion_histories[emotion_name].append((timestamp, current_value))
+                if (
+                    not self.emotion_histories[emotion_name]
+                    or self.emotion_histories[emotion_name][-1][0] != timestamp
+                ):
+                    self.emotion_histories[emotion_name].append(
+                        (timestamp, current_value)
+                    )
 
-    def predict_emotional_state(self, state_name: str, steps_ahead: int = 5) -> float:
+    def predict_emotional_state(
+        self, state_name: str, steps_ahead: int = 5
+    ) -> float:
         """Predict future emotional state based on historical data using simple trend analysis."""
         # First try to get history from legacy attributes
         history_mapping = {
-            'joy': self.joy_history,
-            'grief': self.grief_history,
-            'sadness': self.sadness_history,
-            'calm': self.calm_history,
-            'anxiety': self.anxiety_history,
-            'energy': self.energy_history,
-            'anger': getattr(self, 'anger_history', None),
-            'hope': getattr(self, 'hope_history', None),
-            'curiosity': getattr(self, 'curiosity_history', None),
-            'frustration': getattr(self, 'frustration_history', None),
-            'resilience': getattr(self, 'resilience_history', None)
+            "joy": self.joy_history,
+            "grief": self.grief_history,
+            "sadness": self.sadness_history,
+            "calm": self.calm_history,
+            "anxiety": self.anxiety_history,
+            "energy": self.energy_history,
+            "anger": getattr(self, "anger_history", None),
+            "hope": getattr(self, "hope_history", None),
+            "curiosity": getattr(self, "curiosity_history", None),
+            "frustration": getattr(self, "frustration_history", None),
+            "resilience": getattr(self, "resilience_history", None),
         }
 
         history = history_mapping.get(state_name)
@@ -2377,7 +2910,7 @@ class AliveLoopNode:
                 return 0.0
 
         # Simple linear trend calculation using last few data points
-        recent_points = list(history)[-min(5, len(history)):]
+        recent_points = list(history)[-min(5, len(history)) :]
         if len(recent_points) < 2:
             return recent_points[-1][1]
 
@@ -2385,9 +2918,11 @@ class AliveLoopNode:
         total_change = 0.0
         count = 0
         for i in range(1, len(recent_points)):
-            time_diff = recent_points[i][0] - recent_points[i-1][0]
+            time_diff = recent_points[i][0] - recent_points[i - 1][0]
             if time_diff > 0:
-                rate = (recent_points[i][1] - recent_points[i-1][1]) / time_diff
+                rate = (
+                    recent_points[i][1] - recent_points[i - 1][1]
+                ) / time_diff
                 total_change += rate
                 count += 1
 
@@ -2400,13 +2935,23 @@ class AliveLoopNode:
 
         # Apply bounds based on emotion schema or defaults
         if state_name in self.emotion_schema:
-            min_val, max_val = self.emotion_schema[state_name]['range']
+            min_val, max_val = self.emotion_schema[state_name]["range"]
             return max(min_val, min(max_val, predicted_value))
-        elif state_name in ['joy', 'grief', 'sadness', 'calm', 'anger', 'hope', 'curiosity', 'frustration', 'resilience']:
+        elif state_name in [
+            "joy",
+            "grief",
+            "sadness",
+            "calm",
+            "anger",
+            "hope",
+            "curiosity",
+            "frustration",
+            "resilience",
+        ]:
             return max(0.0, min(5.0, predicted_value))
-        elif state_name == 'anxiety':
+        elif state_name == "anxiety":
             return max(0.0, predicted_value)
-        elif state_name == 'energy':
+        elif state_name == "energy":
             return max(0.0, predicted_value)
         else:
             return predicted_value
@@ -2422,101 +2967,171 @@ class AliveLoopNode:
 
             # Use bounds from emotion schema for trend detection
             emotion_config = self.emotion_schema[emotion_name]
-            min_val, max_val = emotion_config['range']
+            min_val, max_val = emotion_config["range"]
 
             # For bounded states, use absolute threshold; for unbounded, use percentage
-            if max_val != float('inf'):
+            if max_val != float("inf"):
                 # Bounded state - use absolute threshold
                 if predicted > current + 0.2:
-                    trends[emotion_name] = 'increasing'
+                    trends[emotion_name] = "increasing"
                 elif predicted < current - 0.2:
-                    trends[emotion_name] = 'decreasing'
+                    trends[emotion_name] = "decreasing"
                 else:
-                    trends[emotion_name] = 'stable'
+                    trends[emotion_name] = "stable"
             else:
                 # Unbounded state - use percentage threshold
                 if predicted > current * 1.1:
-                    trends[emotion_name] = 'increasing'
+                    trends[emotion_name] = "increasing"
                 elif predicted < current * 0.9:
-                    trends[emotion_name] = 'decreasing'
+                    trends[emotion_name] = "decreasing"
                 else:
-                    trends[emotion_name] = 'stable'
+                    trends[emotion_name] = "stable"
 
         return trends
 
-    def _check_anxiety_intervention(self, trends: dict, predictions: dict) -> tuple[bool, str, float, list[str]]:
+    def _check_anxiety_intervention(
+        self, trends: dict, predictions: dict
+    ) -> tuple[bool, str, float, list[str]]:
         """Check if anxiety intervention is needed."""
-        if (trends['anxiety'] == 'increasing' and predictions['anxiety'] > self.anxiety_threshold) or \
-           (self.anxiety > self.anxiety_threshold * 0.8):
-            return True, 'anxiety_help', 0.8, ['anxiety_escalation_predicted']
+        if (
+            trends["anxiety"] == "increasing"
+            and predictions["anxiety"] > self.anxiety_threshold
+        ) or (self.anxiety > self.anxiety_threshold * 0.8):
+            return True, "anxiety_help", 0.8, ["anxiety_escalation_predicted"]
         return False, None, 0.0, []
 
-    def _check_grief_intervention(self, trends: dict, predictions: dict) -> tuple[bool, str, float, list[str]]:
+    def _check_grief_intervention(
+        self, trends: dict, predictions: dict
+    ) -> tuple[bool, str, float, list[str]]:
         """Check if grief support intervention is needed."""
-        if (trends['grief'] == 'increasing' and predictions['grief'] > 4.0) or self.grief > 3.5:
-            return True, 'grief_support', 0.7, ['grief_overwhelming']
+        if (
+            trends["grief"] == "increasing" and predictions["grief"] > 4.0
+        ) or self.grief > 3.5:
+            return True, "grief_support", 0.7, ["grief_overwhelming"]
         return False, None, 0.0, []
 
-    def _check_sadness_intervention(self, trends: dict, predictions: dict) -> tuple[bool, str, float, list[str]]:
+    def _check_sadness_intervention(
+        self, trends: dict, predictions: dict
+    ) -> tuple[bool, str, float, list[str]]:
         """Check if sadness/comfort intervention is needed."""
-        if (trends['sadness'] == 'increasing' and predictions['sadness'] > 4.0) or \
-           (self.sadness > 3.0 and trends.get('joy', 'stable') == 'decreasing'):
-            return True, 'comfort_request', 0.6, ['sadness_trend_concerning']
+        if (
+            trends["sadness"] == "increasing" and predictions["sadness"] > 4.0
+        ) or (
+            self.sadness > 3.0 and trends.get("joy", "stable") == "decreasing"
+        ):
+            return True, "comfort_request", 0.6, ["sadness_trend_concerning"]
         return False, None, 0.0, []
 
-    def _check_anger_intervention(self, trends: dict, predictions: dict) -> tuple[bool, str, float, list[str]]:
+    def _check_anger_intervention(
+        self, trends: dict, predictions: dict
+    ) -> tuple[bool, str, float, list[str]]:
         """Check if anger management intervention is needed."""
-        if (trends.get('anger', 'stable') == 'increasing' and predictions.get('anger', 0) > 3.5) or self.anger > 3.0:
-            return True, 'anger_management', 0.7, ['anger_escalation']
+        if (
+            trends.get("anger", "stable") == "increasing"
+            and predictions.get("anger", 0) > 3.5
+        ) or self.anger > 3.0:
+            return True, "anger_management", 0.7, ["anger_escalation"]
         return False, None, 0.0, []
 
-    def _check_hope_intervention(self, trends: dict, predictions: dict) -> tuple[bool, str, float, list[str]]:
+    def _check_hope_intervention(
+        self, trends: dict, predictions: dict
+    ) -> tuple[bool, str, float, list[str]]:
         """Check if hope restoration intervention is needed."""
-        if (trends.get('hope', 'stable') == 'decreasing' and predictions.get('hope', 2.0) < 1.0) or self.hope < 0.5:
-            return True, 'hope_restoration', 0.6, ['hope_depletion']
+        if (
+            trends.get("hope", "stable") == "decreasing"
+            and predictions.get("hope", 2.0) < 1.0
+        ) or self.hope < 0.5:
+            return True, "hope_restoration", 0.6, ["hope_depletion"]
         return False, None, 0.0, []
 
-    def _check_curiosity_intervention(self, trends: dict, predictions: dict) -> tuple[bool, str, float, list[str]]:
+    def _check_curiosity_intervention(
+        self, trends: dict, predictions: dict
+    ) -> tuple[bool, str, float, list[str]]:
         """Check if curiosity/engagement intervention is needed."""
-        if (trends.get('curiosity', 'stable') == 'decreasing' and predictions.get('curiosity', 1.0) < 0.3) or \
-           (self.curiosity < 0.2 and trends.get('energy', 'stable') == 'decreasing'):
-            return True, 'engagement_boost', 0.4, ['curiosity_disengagement']
+        if (
+            trends.get("curiosity", "stable") == "decreasing"
+            and predictions.get("curiosity", 1.0) < 0.3
+        ) or (
+            self.curiosity < 0.2
+            and trends.get("energy", "stable") == "decreasing"
+        ):
+            return True, "engagement_boost", 0.4, ["curiosity_disengagement"]
         return False, None, 0.0, []
 
-    def _check_frustration_intervention(self, trends: dict, predictions: dict) -> tuple[bool, str, float, list[str]]:
+    def _check_frustration_intervention(
+        self, trends: dict, predictions: dict
+    ) -> tuple[bool, str, float, list[str]]:
         """Check if frustration relief intervention is needed."""
-        if (trends.get('frustration', 'stable') == 'increasing' and predictions.get('frustration', 0) > 3.5) or \
-           (self.frustration > 3.0 and self.anger > 2.0):
-            return True, 'frustration_relief', 0.6, ['frustration_buildup']
+        if (
+            trends.get("frustration", "stable") == "increasing"
+            and predictions.get("frustration", 0) > 3.5
+        ) or (self.frustration > 3.0 and self.anger > 2.0):
+            return True, "frustration_relief", 0.6, ["frustration_buildup"]
         return False, None, 0.0, []
 
-    def _check_resilience_intervention(self, trends: dict, predictions: dict) -> tuple[bool, str, float, list[str]]:
+    def _check_resilience_intervention(
+        self, trends: dict, predictions: dict
+    ) -> tuple[bool, str, float, list[str]]:
         """Check if resilience building intervention is needed."""
-        if (trends.get('resilience', 'stable') == 'decreasing' and predictions.get('resilience', 2.0) < 1.0) or \
-           (self.resilience < 0.8 and (self.grief > 2.0 or self.sadness > 2.0 or self.anxiety > 6.0)):
-            return True, 'resilience_building', 0.7, ['resilience_depletion']
+        if (
+            trends.get("resilience", "stable") == "decreasing"
+            and predictions.get("resilience", 2.0) < 1.0
+        ) or (
+            self.resilience < 0.8
+            and (self.grief > 2.0 or self.sadness > 2.0 or self.anxiety > 6.0)
+        ):
+            return True, "resilience_building", 0.7, ["resilience_depletion"]
         return False, None, 0.0, []
 
-    def _check_energy_emotional_intervention(self, trends: dict, predictions: dict) -> tuple[bool, str, float, list[str]]:
+    def _check_energy_emotional_intervention(
+        self, trends: dict, predictions: dict
+    ) -> tuple[bool, str, float, list[str]]:
         """Check if energy support intervention is needed due to emotional load."""
-        negative_emotion_load = self.grief + self.sadness + (self.anxiety * 0.2) + self.anger + self.frustration
-        if (trends['energy'] == 'decreasing' and predictions['energy'] < 2.0) and negative_emotion_load > 5.0:
-            return True, 'energy_support', 0.5, ['energy_emotional_crisis']
+        negative_emotion_load = (
+            self.grief
+            + self.sadness
+            + (self.anxiety * 0.2)
+            + self.anger
+            + self.frustration
+        )
+        if (
+            trends["energy"] == "decreasing" and predictions["energy"] < 2.0
+        ) and negative_emotion_load > 5.0:
+            return True, "energy_support", 0.5, ["energy_emotional_crisis"]
         return False, None, 0.0, []
 
-    def _check_positive_interventions(self, trends: dict, predictions: dict) -> tuple[bool, str, float, list[str]]:
+    def _check_positive_interventions(
+        self, trends: dict, predictions: dict
+    ) -> tuple[bool, str, float, list[str]]:
         """Check for positive intervention opportunities."""
         # Joy sharing opportunity
-        if trends.get('joy', 'stable') == 'increasing' and self.joy > 3.0 and self.calm > 2.5:
-            return True, 'joy_share', 0.3, ['joy_sharing_opportunity']
+        if (
+            trends.get("joy", "stable") == "increasing"
+            and self.joy > 3.0
+            and self.calm > 2.5
+        ):
+            return True, "joy_share", 0.3, ["joy_sharing_opportunity"]
 
         # Hope sharing opportunity
-        if trends.get('hope', 'stable') == 'increasing' and self.hope > 4.0 and self.resilience > 3.0:
-            return True, 'hope_share', 0.3, ['hope_sharing_opportunity']
+        if (
+            trends.get("hope", "stable") == "increasing"
+            and self.hope > 4.0
+            and self.resilience > 3.0
+        ):
+            return True, "hope_share", 0.3, ["hope_sharing_opportunity"]
 
         # Curiosity collaboration opportunity
-        if trends.get('curiosity', 'stable') == 'increasing' and self.curiosity > 3.5 and self.energy > 8.0:
-            return True, 'curiosity_collaboration', 0.3, ['curiosity_collaboration_opportunity']
+        if (
+            trends.get("curiosity", "stable") == "increasing"
+            and self.curiosity > 3.5
+            and self.energy > 8.0
+        ):
+            return (
+                True,
+                "curiosity_collaboration",
+                0.3,
+                ["curiosity_collaboration_opportunity"],
+            )
 
         return False, None, 0.0, []
 
@@ -2534,7 +3149,9 @@ class AliveLoopNode:
         # Predict emotional states 3 steps ahead for all tracked emotions
         predictions = {}
         for emotion_name in self.emotion_schema.keys():
-            predictions[emotion_name] = self.predict_emotional_state(emotion_name, 3)
+            predictions[emotion_name] = self.predict_emotional_state(
+                emotion_name, 3
+            )
 
         # Check all intervention types in priority order
         intervention_checks = [
@@ -2557,7 +3174,9 @@ class AliveLoopNode:
 
         # Check each intervention type, accumulating results
         for check_func in intervention_checks:
-            needed, i_type, i_urgency, i_reasons = check_func(trends, predictions)
+            needed, i_type, i_urgency, i_reasons = check_func(
+                trends, predictions
+            )
             if needed:
                 intervention_needed = True
                 if urgency < i_urgency:  # Use highest urgency intervention
@@ -2566,14 +3185,14 @@ class AliveLoopNode:
                 reasons.extend(i_reasons)
 
         return {
-            'intervention_needed': intervention_needed,
-            'intervention_type': intervention_type,
-            'urgency': urgency,
-            'reasons': reasons,
-            'trends': trends,
-            'predictions': predictions,
-            'emotional_summary': self._get_emotional_summary(),
-            'composite_health_score': self.calculate_composite_emotional_health()
+            "intervention_needed": intervention_needed,
+            "intervention_type": intervention_type,
+            "urgency": urgency,
+            "reasons": reasons,
+            "trends": trends,
+            "predictions": predictions,
+            "emotional_summary": self._get_emotional_summary(),
+            "composite_health_score": self.calculate_composite_emotional_health(),
         }
 
     def try_send_help_signal(self):
@@ -2610,10 +3229,11 @@ class AliveLoopNode:
                 trimmed.append((ts, val * 0.7))  # decay past anxiety
             self.anxiety_history.clear()
             self.anxiety_history.extend(trimmed)
+
     def calculate_composite_emotional_health(self) -> float:
         """
         Calculate a composite emotional health score (0.0 to 1.0) based on all tracked emotions.
-        
+
         Returns:
             float: Composite health score where 1.0 is optimal emotional health, 0.0 is poor
         """
@@ -2626,58 +3246,66 @@ class AliveLoopNode:
 
         # Categorize emotions and normalize values
         for emotion_name, config in self.emotion_schema.items():
-            current_value = getattr(self, emotion_name, config['default'])
-            emotion_type = config['type']
-            min_val, max_val = config['range']
+            current_value = getattr(self, emotion_name, config["default"])
+            emotion_type = config["type"]
+            min_val, max_val = config["range"]
 
             # Normalize to 0-1 scale for bounded emotions
-            if max_val != float('inf'):
+            if max_val != float("inf"):
                 normalized_value = current_value / max_val
             else:
                 # For unbounded emotions, use a reasonable upper bound for normalization
-                if emotion_name == 'energy':
-                    normalized_value = min(1.0, current_value / 20.0)  # Assume 20 is high energy
-                elif emotion_name == 'anxiety':
-                    normalized_value = min(1.0, current_value / 10.0)  # Assume 10 is high anxiety
+                if emotion_name == "energy":
+                    normalized_value = min(
+                        1.0, current_value / 20.0
+                    )  # Assume 20 is high energy
+                elif emotion_name == "anxiety":
+                    normalized_value = min(
+                        1.0, current_value / 10.0
+                    )  # Assume 10 is high anxiety
                 else:
-                    normalized_value = min(1.0, current_value / 5.0)   # Generic upper bound
+                    normalized_value = min(
+                        1.0, current_value / 5.0
+                    )  # Generic upper bound
 
-            if emotion_type == 'positive':
+            if emotion_type == "positive":
                 positive_emotions.append(normalized_value)
-            elif emotion_type == 'negative':
+            elif emotion_type == "negative":
                 negative_emotions.append(normalized_value)
             else:
                 neutral_emotions.append(normalized_value)
 
         # Calculate component scores
         # Positive emotions: higher values = better health
-        positive_score = np.mean(positive_emotions) if positive_emotions else 0.5
+        positive_score = (
+            np.mean(positive_emotions) if positive_emotions else 0.5
+        )
 
         # Negative emotions: lower values = better health
-        negative_score = 1.0 - np.mean(negative_emotions) if negative_emotions else 0.5
+        negative_score = (
+            1.0 - np.mean(negative_emotions) if negative_emotions else 0.5
+        )
 
         # Neutral emotions: moderate values are typically best
         neutral_score = 0.5
         if neutral_emotions:
             # For neutral emotions like energy, being too low or too high can be problematic
             # Optimal range is typically 0.3-0.8, with 0.6 being ideal
-            neutral_deviations = [abs(val - 0.6) / 0.6 for val in neutral_emotions]
+            neutral_deviations = [
+                abs(val - 0.6) / 0.6 for val in neutral_emotions
+            ]
             neutral_score = 1.0 - np.mean(neutral_deviations)
 
         # Weighted composite score
         # Positive emotions have higher weight as they're essential for wellbeing
         # Negative emotions have high weight as they can severely impact health
         # Neutral emotions have moderate weight
-        weights = {
-            'positive': 0.4,
-            'negative': 0.4,
-            'neutral': 0.2
-        }
+        weights = {"positive": 0.4, "negative": 0.4, "neutral": 0.2}
 
         composite_score = (
-            weights['positive'] * positive_score +
-            weights['negative'] * negative_score +
-            weights['neutral'] * neutral_score
+            weights["positive"] * positive_score
+            + weights["negative"] * negative_score
+            + weights["neutral"] * neutral_score
         )
 
         # Apply resilience bonus - higher resilience improves overall score
@@ -2699,19 +3327,24 @@ class AliveLoopNode:
 
         return round(composite_score, 3)
 
-    def add_emotion_to_schema(self, emotion_name: str, emotion_type: str,
-                             emotion_range: tuple, default_value: float = 0.0,
-                             is_core: bool = False) -> bool:
+    def add_emotion_to_schema(
+        self,
+        emotion_name: str,
+        emotion_type: str,
+        emotion_range: tuple,
+        default_value: float = 0.0,
+        is_core: bool = False,
+    ) -> bool:
         """
         Add a new emotion to the tracking schema.
-        
+
         Args:
             emotion_name: Name of the emotion to track
             emotion_type: 'positive', 'negative', or 'neutral'
             emotion_range: Tuple of (min_value, max_value)
             default_value: Starting value for the emotion
             is_core: Whether this is a core emotion that cannot be removed
-            
+
         Returns:
             bool: True if successfully added, False if already exists
         """
@@ -2720,10 +3353,10 @@ class AliveLoopNode:
 
         # Add to schema
         self.emotion_schema[emotion_name] = {
-            'type': emotion_type,
-            'range': emotion_range,
-            'default': default_value,
-            'core': is_core
+            "type": emotion_type,
+            "range": emotion_range,
+            "default": default_value,
+            "core": is_core,
         }
 
         # Initialize the emotion attribute
@@ -2741,10 +3374,10 @@ class AliveLoopNode:
     def remove_emotion_from_schema(self, emotion_name: str) -> bool:
         """
         Remove an emotion from the tracking schema.
-        
+
         Args:
             emotion_name: Name of the emotion to remove
-            
+
         Returns:
             bool: True if successfully removed, False if core emotion or not found
         """
@@ -2752,7 +3385,7 @@ class AliveLoopNode:
             return False  # Doesn't exist
 
         # Cannot remove core emotions
-        if self.emotion_schema[emotion_name].get('core', False):
+        if self.emotion_schema[emotion_name].get("core", False):
             return False
 
         # Remove from schema
@@ -2775,10 +3408,18 @@ class AliveLoopNode:
     def get_emotion_schema_config(self) -> dict[str, Any]:
         """Get current emotion schema configuration."""
         return {
-            'schema': dict(self.emotion_schema),
-            'tracked_emotions': list(self.emotion_schema.keys()),
-            'core_emotions': [name for name, config in self.emotion_schema.items() if config.get('core', False)],
-            'configurable_emotions': [name for name, config in self.emotion_schema.items() if not config.get('core', False)]
+            "schema": dict(self.emotion_schema),
+            "tracked_emotions": list(self.emotion_schema.keys()),
+            "core_emotions": [
+                name
+                for name, config in self.emotion_schema.items()
+                if config.get("core", False)
+            ],
+            "configurable_emotions": [
+                name
+                for name, config in self.emotion_schema.items()
+                if not config.get("core", False)
+            ],
         }
 
     def reset_emotion_to_default(self, emotion_name: str) -> bool:
@@ -2786,7 +3427,7 @@ class AliveLoopNode:
         if emotion_name not in self.emotion_schema:
             return False
 
-        default_value = self.emotion_schema[emotion_name]['default']
+        default_value = self.emotion_schema[emotion_name]["default"]
         setattr(self, emotion_name, default_value)
 
         # Record the reset in history
@@ -2796,17 +3437,21 @@ class AliveLoopNode:
             getattr(self, history_attr).append((timestamp, default_value))
 
         if emotion_name in self.emotion_histories:
-            self.emotion_histories[emotion_name].append((timestamp, default_value))
+            self.emotion_histories[emotion_name].append(
+                (timestamp, default_value)
+            )
 
         return True
 
     def graceful_shutdown(self, timeout: int = 30) -> bool:
         """Gracefully shutdown node by draining queues and finishing work"""
-        logger.info(f"Node {self.node_id}: Starting graceful shutdown with {timeout}s timeout")
+        logger.info(
+            f"Node {self.node_id}: Starting graceful shutdown with {timeout}s timeout"
+        )
         start_time = get_timestamp()
 
         # Stop accepting new signals
-        self.circuit_breaker['state'] = 'open'
+        self.circuit_breaker["state"] = "open"
 
         # Process remaining signals in queues
         while get_timestamp() - start_time < timeout:
@@ -2816,7 +3461,9 @@ class AliveLoopNode:
                 try:
                     self.receive_signal(signal)
                 except Exception as e:
-                    logger.error(f"Node {self.node_id}: Error processing signal during shutdown: {e}")
+                    logger.error(
+                        f"Node {self.node_id}: Error processing signal during shutdown: {e}"
+                    )
                 continue
 
             # Drain partition queues
@@ -2828,18 +3475,28 @@ class AliveLoopNode:
                         self.receive_signal(signal)
                         processed_any = True
                     except Exception as e:
-                        logger.error(f"Node {self.node_id}: Error processing partition signal during shutdown: {e}")
+                        logger.error(
+                            f"Node {self.node_id}: Error processing partition signal during shutdown: {e}"
+                        )
 
             if not processed_any:
                 break  # All queues empty
 
         # Log final metrics
         metrics = self._get_queue_metrics()
-        logger.info(f"Node {self.node_id}: Shutdown complete. Final metrics: {metrics}")
+        logger.info(
+            f"Node {self.node_id}: Shutdown complete. Final metrics: {metrics}"
+        )
 
-        return len(self.communication_queue) == 0 and all(len(q) == 0 for q in self.partition_queues.values())
+        return len(self.communication_queue) == 0 and all(
+            len(q) == 0 for q in self.partition_queues.values()
+        )
 
-    def replay_signals(self, from_timestamp: int | None = None, to_timestamp: int | None = None) -> list[dict]:
+    def replay_signals(
+        self,
+        from_timestamp: int | None = None,
+        to_timestamp: int | None = None,
+    ) -> list[dict]:
         """Replay persisted signals for recovery or audit purposes"""
         if from_timestamp is None:
             from_timestamp = 0
@@ -2848,22 +3505,28 @@ class AliveLoopNode:
 
         replayed_signals = []
         for entry in self.persisted_signals:
-            signal_time = entry['timestamp']
+            signal_time = entry["timestamp"]
             if from_timestamp <= signal_time <= to_timestamp:
-                signal = entry['signal']
+                signal = entry["signal"]
 
                 # Create replay entry
                 replay_entry = {
-                    'signal_id': signal.id,
-                    'signal_type': signal.signal_type,
-                    'source_id': signal.source_id,
-                    'timestamp': signal_time,
-                    'correlation_id': signal.correlation_id,
-                    'content_summary': str(signal.content)[:100] + "..." if len(str(signal.content)) > 100 else str(signal.content)
+                    "signal_id": signal.id,
+                    "signal_type": signal.signal_type,
+                    "source_id": signal.source_id,
+                    "timestamp": signal_time,
+                    "correlation_id": signal.correlation_id,
+                    "content_summary": (
+                        str(signal.content)[:100] + "..."
+                        if len(str(signal.content)) > 100
+                        else str(signal.content)
+                    ),
                 }
                 replayed_signals.append(replay_entry)
 
-        logger.info(f"Node {self.node_id}: Replayed {len(replayed_signals)} signals from {from_timestamp} to {to_timestamp}")
+        logger.info(
+            f"Node {self.node_id}: Replayed {len(replayed_signals)} signals from {from_timestamp} to {to_timestamp}"
+        )
         return replayed_signals
 
     def process_dlq_messages(self) -> list[dict]:
@@ -2871,52 +3534,64 @@ class AliveLoopNode:
         dlq_messages = []
 
         for entry in self.dead_letter_queue:
-            signal = entry['signal']
+            signal = entry["signal"]
             dlq_message = {
-                'signal_id': signal.id,
-                'signal_type': signal.signal_type,
-                'source_id': signal.source_id,
-                'error': entry['error'],
-                'timestamp': entry['timestamp'],
-                'correlation_id': signal.correlation_id,
-                'retry_count': signal.retry_count,
-                'content': signal.content
+                "signal_id": signal.id,
+                "signal_type": signal.signal_type,
+                "source_id": signal.source_id,
+                "error": entry["error"],
+                "timestamp": entry["timestamp"],
+                "correlation_id": signal.correlation_id,
+                "retry_count": signal.retry_count,
+                "content": signal.content,
             }
             dlq_messages.append(dlq_message)
 
-        logger.info(f"Node {self.node_id}: Found {len(dlq_messages)} messages in DLQ")
+        logger.info(
+            f"Node {self.node_id}: Found {len(dlq_messages)} messages in DLQ"
+        )
         return dlq_messages
 
     def reprocess_dlq_message(self, signal_id: str) -> bool:
         """Attempt to reprocess a message from the DLQ"""
         for i, entry in enumerate(self.dead_letter_queue):
-            if entry['signal'].id == signal_id:
-                signal = entry['signal']
+            if entry["signal"].id == signal_id:
+                signal = entry["signal"]
                 signal.retry_count += 1
 
                 # Temporarily enable circuit breaker for reprocessing
-                original_state = self.circuit_breaker['state']
-                self.circuit_breaker['state'] = 'closed'
+                original_state = self.circuit_breaker["state"]
+                self.circuit_breaker["state"] = "closed"
 
                 # Attempt reprocessing
                 try:
                     response = self.receive_signal(signal)
                     # Only remove from DLQ if processing was actually successful
                     # Check if signal was processed (not None response or no error thrown)
-                    if signal.id not in [entry['signal'].id for entry in self.dead_letter_queue]:
-                        logger.info(f"Node {self.node_id}: Successfully reprocessed DLQ message {signal_id}")
+                    if signal.id not in [
+                        entry["signal"].id for entry in self.dead_letter_queue
+                    ]:
+                        logger.info(
+                            f"Node {self.node_id}: Successfully reprocessed DLQ message {signal_id}"
+                        )
                         return True
                     else:
-                        logger.error(f"Node {self.node_id}: Failed to reprocess DLQ message {signal_id}: still in DLQ")
+                        logger.error(
+                            f"Node {self.node_id}: Failed to reprocess DLQ message {signal_id}: still in DLQ"
+                        )
                         return False
                 except Exception as e:
-                    logger.error(f"Node {self.node_id}: Failed to reprocess DLQ message {signal_id}: {e}")
+                    logger.error(
+                        f"Node {self.node_id}: Failed to reprocess DLQ message {signal_id}: {e}"
+                    )
                     return False
                 finally:
                     # Restore original circuit breaker state
-                    self.circuit_breaker['state'] = original_state
+                    self.circuit_breaker["state"] = original_state
 
-        logger.warning(f"Node {self.node_id}: DLQ message {signal_id} not found")
+        logger.warning(
+            f"Node {self.node_id}: DLQ message {signal_id} not found"
+        )
         return False
 
     def cleanup_expired_deduplication_entries(self):
@@ -2925,298 +3600,347 @@ class AliveLoopNode:
         expired_keys = []
 
         for key, entry in self.deduplication_store.items():
-            if current_time - entry['timestamp'] >= entry['ttl']:
+            if current_time - entry["timestamp"] >= entry["ttl"]:
                 expired_keys.append(key)
 
         for key in expired_keys:
             del self.deduplication_store[key]
 
         if expired_keys:
-            logger.debug(f"Node {self.node_id}: Cleaned up {len(expired_keys)} expired deduplication entries")
-    
+            logger.debug(
+                f"Node {self.node_id}: Cleaned up {len(expired_keys)} expired deduplication entries"
+            )
+
     # Defensive Reasoning Methods for Cyber-Defense
-    
-    def reason_about_threat(self, pattern: Any, threat_library: Optional[Any] = None) -> Dict[str, Any]:
+
+    def reason_about_threat(
+        self, pattern: Any, threat_library: Optional[Any] = None
+    ) -> Dict[str, Any]:
         """
         Analyze threat pattern using logical reasoning and historical data.
-        
+
         Uses working memory for immediate analysis and long-term memory for
         pattern matching. Combines known countermeasures through logical inference.
-        
+
         Args:
             pattern: ThreatPattern object to analyze
             threat_library: Optional ThreatLibrary for similarity search
-            
+
         Returns:
             Dictionary with threat analysis and recommended countermeasures
         """
         from core.threat_patterns import ThreatPattern, ThreatLibrary
-        
+
         analysis = {
-            'threat_id': getattr(pattern, 'pattern_id', 'unknown'),
-            'severity': getattr(pattern, 'severity', 0.5),
-            'attack_type': getattr(pattern, 'attack_type', 'unknown'),
-            'confidence': 0.0,
-            'similar_threats': [],
-            'recommended_countermeasures': [],
-            'reasoning_chain': []
+            "threat_id": getattr(pattern, "pattern_id", "unknown"),
+            "severity": getattr(pattern, "severity", 0.5),
+            "attack_type": getattr(pattern, "attack_type", "unknown"),
+            "confidence": 0.0,
+            "similar_threats": [],
+            "recommended_countermeasures": [],
+            "reasoning_chain": [],
         }
-        
+
         # Step 1: Check working memory for recent similar threats
-        analysis['reasoning_chain'].append("Analyzing working memory for recent threats")
+        analysis["reasoning_chain"].append(
+            "Analyzing working memory for recent threats"
+        )
         recent_threats = 0
         for item in self.working_memory:
-            if isinstance(item, dict) and item.get('type') == 'threat_detection':
+            if (
+                isinstance(item, dict)
+                and item.get("type") == "threat_detection"
+            ):
                 recent_threats += 1
-        
+
         # Higher confidence if we've seen similar threats recently
         if recent_threats > 0:
-            analysis['confidence'] += 0.2
-            analysis['reasoning_chain'].append(f"Found {recent_threats} recent threat detections")
-        
+            analysis["confidence"] += 0.2
+            analysis["reasoning_chain"].append(
+                f"Found {recent_threats} recent threat detections"
+            )
+
         # Step 2: Search threat library for similar patterns
         if threat_library and isinstance(threat_library, ThreatLibrary):
-            analysis['reasoning_chain'].append("Searching threat library for similar patterns")
+            analysis["reasoning_chain"].append(
+                "Searching threat library for similar patterns"
+            )
             similar = threat_library.find_similar(pattern)
-            analysis['similar_threats'] = [
+            analysis["similar_threats"] = [
                 {
-                    'pattern_id': p.pattern_id,
-                    'similarity': sim,
-                    'attack_type': p.attack_type,
-                    'severity': p.severity
+                    "pattern_id": p.pattern_id,
+                    "similarity": sim,
+                    "attack_type": p.attack_type,
+                    "severity": p.severity,
                 }
                 for p, sim in similar[:3]
             ]
-            
+
             if similar:
-                analysis['confidence'] += 0.3
-                analysis['reasoning_chain'].append(
+                analysis["confidence"] += 0.3
+                analysis["reasoning_chain"].append(
                     f"Found {len(similar)} similar threats in library"
                 )
-        
+
         # Step 3: Check long-term memory for threat patterns
-        analysis['reasoning_chain'].append("Checking long-term memory for threat patterns")
-        if 'threat_patterns' in self.long_term_memory:
-            stored_patterns = self.long_term_memory['threat_patterns']
+        analysis["reasoning_chain"].append(
+            "Checking long-term memory for threat patterns"
+        )
+        if "threat_patterns" in self.long_term_memory:
+            stored_patterns = self.long_term_memory["threat_patterns"]
             if isinstance(stored_patterns, list) and len(stored_patterns) > 0:
-                analysis['confidence'] += 0.2
-                analysis['reasoning_chain'].append(
+                analysis["confidence"] += 0.2
+                analysis["reasoning_chain"].append(
                     f"Retrieved {len(stored_patterns)} patterns from long-term memory"
                 )
-        
+
         # Step 4: Get effective countermeasures
         if threat_library:
-            analysis['reasoning_chain'].append("Retrieving effective countermeasures")
-            countermeasures = threat_library.get_effective_countermeasures(pattern)
-            analysis['recommended_countermeasures'] = [
-                {'countermeasure': cm, 'effectiveness': eff}
+            analysis["reasoning_chain"].append(
+                "Retrieving effective countermeasures"
+            )
+            countermeasures = threat_library.get_effective_countermeasures(
+                pattern
+            )
+            analysis["recommended_countermeasures"] = [
+                {"countermeasure": cm, "effectiveness": eff}
                 for cm, eff in countermeasures
             ]
-        
+
         # Step 5: Apply trust network to validate intelligence
-        analysis['reasoning_chain'].append("Validating with trust network")
-        trusted_nodes = sum(1 for trust in self.trust_network.values() if trust > 0.7)
+        analysis["reasoning_chain"].append("Validating with trust network")
+        trusted_nodes = sum(
+            1 for trust in self.trust_network.values() if trust > 0.7
+        )
         if trusted_nodes > 0:
-            analysis['confidence'] += 0.1
-            analysis['reasoning_chain'].append(
+            analysis["confidence"] += 0.1
+            analysis["reasoning_chain"].append(
                 f"Trust network validation: {trusted_nodes} trusted nodes"
             )
-        
+
         # Normalize confidence
-        analysis['confidence'] = min(1.0, analysis['confidence'])
-        
+        analysis["confidence"] = min(1.0, analysis["confidence"])
+
         # Log reasoning
-        logger.info(f"Node {self.node_id} threat analysis: "
-                   f"confidence={analysis['confidence']:.2f}, "
-                   f"countermeasures={len(analysis['recommended_countermeasures'])}")
-        
+        logger.info(
+            f"Node {self.node_id} threat analysis: "
+            f"confidence={analysis['confidence']:.2f}, "
+            f"countermeasures={len(analysis['recommended_countermeasures'])}"
+        )
+
         return analysis
-    
+
     def generate_countermeasure(self, threat_pattern: Any) -> Dict[str, Any]:
         """
         Generate novel defensive strategy by combining known techniques.
-        
+
         Uses logical constraints to ensure feasibility:
         - Energy cost must be affordable
         - Effectiveness must justify cost
         - Must not violate trust relationships
-        
+
         Args:
             threat_pattern: ThreatPattern to defend against
-            
+
         Returns:
             Dictionary with countermeasure strategy
         """
         from core.threat_patterns import ThreatPattern
-        
-        severity = getattr(threat_pattern, 'severity', 0.5)
-        attack_type = getattr(threat_pattern, 'attack_type', 'unknown')
-        
+
+        severity = getattr(threat_pattern, "severity", 0.5)
+        attack_type = getattr(threat_pattern, "attack_type", "unknown")
+
         countermeasure = {
-            'strategy': 'adaptive_defense',
-            'actions': [],
-            'energy_cost': 0.0,
-            'expected_effectiveness': 0.0,
-            'constraints_satisfied': True,
-            'reasoning': []
+            "strategy": "adaptive_defense",
+            "actions": [],
+            "energy_cost": 0.0,
+            "expected_effectiveness": 0.0,
+            "constraints_satisfied": True,
+            "reasoning": [],
         }
-        
+
         # Determine defense strategy based on attack type
-        countermeasure['reasoning'].append(f"Analyzing attack type: {attack_type}")
-        
-        if 'energy_drain' in attack_type:
+        countermeasure["reasoning"].append(
+            f"Analyzing attack type: {attack_type}"
+        )
+
+        if "energy_drain" in attack_type:
             # Energy drain attacks: reduce consumption, activate reserves
-            countermeasure['actions'].append('reduce_energy_consumption')
-            countermeasure['actions'].append('activate_energy_reserves')
-            countermeasure['energy_cost'] = 1.0
-            countermeasure['expected_effectiveness'] = 0.7
-            countermeasure['reasoning'].append("Energy drain detected: conserving resources")
-            
-        elif 'jamming' in attack_type or 'communication' in attack_type:
+            countermeasure["actions"].append("reduce_energy_consumption")
+            countermeasure["actions"].append("activate_energy_reserves")
+            countermeasure["energy_cost"] = 1.0
+            countermeasure["expected_effectiveness"] = 0.7
+            countermeasure["reasoning"].append(
+                "Energy drain detected: conserving resources"
+            )
+
+        elif "jamming" in attack_type or "communication" in attack_type:
             # Communication attacks: switch channels, use redundancy
-            countermeasure['actions'].append('switch_communication_channel')
-            countermeasure['actions'].append('increase_signal_redundancy')
-            countermeasure['energy_cost'] = 0.8
-            countermeasure['expected_effectiveness'] = 0.65
-            countermeasure['reasoning'].append("Jamming detected: adapting communication")
-            
-        elif 'trust' in attack_type or 'poison' in attack_type:
+            countermeasure["actions"].append("switch_communication_channel")
+            countermeasure["actions"].append("increase_signal_redundancy")
+            countermeasure["energy_cost"] = 0.8
+            countermeasure["expected_effectiveness"] = 0.65
+            countermeasure["reasoning"].append(
+                "Jamming detected: adapting communication"
+            )
+
+        elif "trust" in attack_type or "poison" in attack_type:
             # Trust attacks: verify sources, reduce trust
-            countermeasure['actions'].append('verify_node_identities')
-            countermeasure['actions'].append('reduce_trust_in_suspects')
-            countermeasure['energy_cost'] = 0.5
-            countermeasure['expected_effectiveness'] = 0.6
-            countermeasure['reasoning'].append("Trust poisoning: verifying identities")
-            
-        elif 'resource' in attack_type or 'exhaustion' in attack_type:
+            countermeasure["actions"].append("verify_node_identities")
+            countermeasure["actions"].append("reduce_trust_in_suspects")
+            countermeasure["energy_cost"] = 0.5
+            countermeasure["expected_effectiveness"] = 0.6
+            countermeasure["reasoning"].append(
+                "Trust poisoning: verifying identities"
+            )
+
+        elif "resource" in attack_type or "exhaustion" in attack_type:
             # Resource attacks: rate limiting, load balancing
-            countermeasure['actions'].append('apply_rate_limiting')
-            countermeasure['actions'].append('distribute_load')
-            countermeasure['energy_cost'] = 0.6
-            countermeasure['expected_effectiveness'] = 0.75
-            countermeasure['reasoning'].append("Resource exhaustion: applying limits")
-            
+            countermeasure["actions"].append("apply_rate_limiting")
+            countermeasure["actions"].append("distribute_load")
+            countermeasure["energy_cost"] = 0.6
+            countermeasure["expected_effectiveness"] = 0.75
+            countermeasure["reasoning"].append(
+                "Resource exhaustion: applying limits"
+            )
+
         else:
             # Generic defense
-            countermeasure['actions'].append('increase_monitoring')
-            countermeasure['actions'].append('alert_trusted_nodes')
-            countermeasure['energy_cost'] = 0.4
-            countermeasure['expected_effectiveness'] = 0.5
-            countermeasure['reasoning'].append("Unknown threat: generic defense")
-        
+            countermeasure["actions"].append("increase_monitoring")
+            countermeasure["actions"].append("alert_trusted_nodes")
+            countermeasure["energy_cost"] = 0.4
+            countermeasure["expected_effectiveness"] = 0.5
+            countermeasure["reasoning"].append(
+                "Unknown threat: generic defense"
+            )
+
         # Apply severity scaling
         severity_multiplier = 0.5 + 0.5 * severity
-        countermeasure['energy_cost'] *= severity_multiplier
-        
+        countermeasure["energy_cost"] *= severity_multiplier
+
         # Check energy constraint
-        if countermeasure['energy_cost'] > self.energy:
-            countermeasure['constraints_satisfied'] = False
-            countermeasure['reasoning'].append(
+        if countermeasure["energy_cost"] > self.energy:
+            countermeasure["constraints_satisfied"] = False
+            countermeasure["reasoning"].append(
                 f"Energy constraint violated: need {countermeasure['energy_cost']:.2f}, "
                 f"have {self.energy:.2f}"
             )
             # Fallback to minimal defense
-            countermeasure['actions'] = ['alert_trusted_nodes']
-            countermeasure['energy_cost'] = 0.2
-            countermeasure['expected_effectiveness'] = 0.3
-        
+            countermeasure["actions"] = ["alert_trusted_nodes"]
+            countermeasure["energy_cost"] = 0.2
+            countermeasure["expected_effectiveness"] = 0.3
+
         # Check cost-benefit ratio
-        cost_benefit = countermeasure['expected_effectiveness'] / max(0.1, countermeasure['energy_cost'])
+        cost_benefit = countermeasure["expected_effectiveness"] / max(
+            0.1, countermeasure["energy_cost"]
+        )
         if cost_benefit < 0.5:
-            countermeasure['reasoning'].append(
+            countermeasure["reasoning"].append(
                 f"Low cost-benefit ratio: {cost_benefit:.2f}"
             )
-        
-        countermeasure['reasoning'].append(
+
+        countermeasure["reasoning"].append(
             f"Final strategy: {len(countermeasure['actions'])} actions, "
             f"cost={countermeasure['energy_cost']:.2f}, "
             f"effectiveness={countermeasure['expected_effectiveness']:.2f}"
         )
-        
-        logger.info(f"Node {self.node_id} generated countermeasure: "
-                   f"{countermeasure['actions']}")
-        
+
+        logger.info(
+            f"Node {self.node_id} generated countermeasure: "
+            f"{countermeasure['actions']}"
+        )
+
         return countermeasure
-    
+
     def share_threat_intelligence(
         self,
-        target_nodes: List['AliveLoopNode'],
+        target_nodes: List["AliveLoopNode"],
         threat_pattern: Any,
-        confidence: float = 0.8
+        confidence: float = 0.8,
     ) -> int:
         """
         Broadcast discovered threat to trusted nodes.
-        
+
         Uses existing communication infrastructure to share threat intelligence.
         Only shares with nodes that have sufficient trust relationship.
-        
+
         Args:
             target_nodes: List of nodes to notify
             threat_pattern: ThreatPattern to share
             confidence: Confidence score (0.0 to 1.0)
-            
+
         Returns:
             Number of nodes successfully notified
         """
         from core.threat_patterns import ThreatPattern
-        
+
         if not target_nodes:
             return 0
-        
+
         notified = 0
         min_trust = 0.5  # Only share with moderately trusted nodes
-        
+
         for node in target_nodes:
             # Check trust level
             trust_level = self.trust_network.get(node.node_id, 0.0)
             if trust_level < min_trust:
                 continue
-            
+
             # Check communication range
             distance = np.linalg.norm(self.position - node.position)
             if distance > self.communication_range:
                 continue
-            
+
             # Create threat intelligence signal
             threat_data = {
-                'type': 'threat_intelligence',
-                'pattern_id': getattr(threat_pattern, 'pattern_id', 'unknown'),
-                'signature': getattr(threat_pattern, 'signature', []),
-                'severity': getattr(threat_pattern, 'severity', 0.5),
-                'attack_type': getattr(threat_pattern, 'attack_type', 'unknown'),
-                'confidence': confidence,
-                'source_trust': trust_level,
-                'timestamp': time.time()
+                "type": "threat_intelligence",
+                "pattern_id": getattr(threat_pattern, "pattern_id", "unknown"),
+                "signature": getattr(threat_pattern, "signature", []),
+                "severity": getattr(threat_pattern, "severity", 0.5),
+                "attack_type": getattr(
+                    threat_pattern, "attack_type", "unknown"
+                ),
+                "confidence": confidence,
+                "source_trust": trust_level,
+                "timestamp": time.time(),
             }
-            
+
             # Send as warning signal
             signal = SocialSignal(
                 content=threat_data,
-                signal_type='warning',
-                urgency=min(1.0, confidence * getattr(threat_pattern, 'severity', 0.5)),
+                signal_type="warning",
+                urgency=min(
+                    1.0, confidence * getattr(threat_pattern, "severity", 0.5)
+                ),
                 source_id=self.node_id,
-                requires_response=False
+                requires_response=False,
             )
-            
+
             # Send signal (receiver will process it)
             try:
                 node.receive_signal(signal)
                 notified += 1
             except Exception as e:
-                logger.warning(f"Failed to share threat intelligence with node {node.node_id}: {e}")
-        
+                logger.warning(
+                    f"Failed to share threat intelligence with node {node.node_id}: {e}"
+                )
+
         # Store in working memory
-        self.working_memory.append({
-            'type': 'threat_intelligence_shared',
-            'timestamp': time.time(),
-            'recipients': notified,
-            'confidence': confidence
-        })
-        
-        logger.info(f"Node {self.node_id} shared threat intelligence with {notified} nodes")
-        
+        self.working_memory.append(
+            {
+                "type": "threat_intelligence_shared",
+                "timestamp": time.time(),
+                "recipients": notified,
+                "confidence": confidence,
+            }
+        )
+
+        logger.info(
+            f"Node {self.node_id} shared threat intelligence with {notified} nodes"
+        )
+
         return notified
-    
+
     def enable_frequency_intelligence(
         self,
         enable_rf: bool = True,
@@ -3224,13 +3948,13 @@ class AliveLoopNode:
         enable_vibration: bool = True,
         enable_network: bool = True,
         enable_behavioral: bool = True,
-        enable_keystroke: bool = True
+        enable_keystroke: bool = True,
     ) -> bool:
         """
         Enable Frequency Intelligence System for this node.
-        
+
         Initializes the unified frequency analyzer with specified domains.
-        
+
         Args:
             enable_rf: Enable RF spectrum analysis
             enable_acoustic: Enable acoustic frequency analysis
@@ -3238,57 +3962,66 @@ class AliveLoopNode:
             enable_network: Enable network frequency analysis
             enable_behavioral: Enable behavioral frequency analysis
             enable_keystroke: Enable keystroke frequency analysis
-            
+
         Returns:
             True if successfully enabled
         """
         try:
-            from core.unified_frequency_intelligence import UnifiedFrequencyIntelligence
-            
+            from core.unified_frequency_intelligence import (
+                UnifiedFrequencyIntelligence,
+            )
+
             self.frequency_sensors = UnifiedFrequencyIntelligence(
                 enable_rf=enable_rf,
                 enable_acoustic=enable_acoustic,
                 enable_vibration=enable_vibration,
                 enable_network=enable_network,
                 enable_behavioral=enable_behavioral,
-                enable_keystroke=enable_keystroke
+                enable_keystroke=enable_keystroke,
             )
-            
+
             self._frequency_intelligence_enabled = True
-            logger.info(f"Node {self.node_id}: Frequency Intelligence System enabled")
+            logger.info(
+                f"Node {self.node_id}: Frequency Intelligence System enabled"
+            )
             return True
-            
+
         except Exception as e:
-            logger.error(f"Node {self.node_id}: Failed to enable Frequency Intelligence: {e}")
+            logger.error(
+                f"Node {self.node_id}: Failed to enable Frequency Intelligence: {e}"
+            )
             return False
-    
+
     def analyze_frequency_environment(
-        self,
-        duration_seconds: float = 1.0
+        self, duration_seconds: float = 1.0
     ) -> Dict[str, Any]:
         """
         Analyze frequency environment across all domains.
-        
+
         Args:
             duration_seconds: Duration to analyze
-            
+
         Returns:
             Dictionary with frequency environment data
         """
-        if not self._frequency_intelligence_enabled or not self.frequency_sensors:
-            logger.warning(f"Node {self.node_id}: Frequency Intelligence not enabled")
+        if (
+            not self._frequency_intelligence_enabled
+            or not self.frequency_sensors
+        ):
+            logger.warning(
+                f"Node {self.node_id}: Frequency Intelligence not enabled"
+            )
             return {"error": "Frequency Intelligence not enabled"}
-        
+
         try:
             # Battery-aware adaptive analysis
             battery_level = self.energy / 10.0  # Normalize to 0-1
-            
+
             # Analyze all frequencies
             environment = self.frequency_sensors.analyze_all_frequencies(
-                battery_level=battery_level,
-                duration_seconds=duration_seconds
+                battery_level=battery_level, duration_seconds=duration_seconds
             )
-            
+
             # Store baseline if not set
             if not self.frequency_baseline:
                 self.frequency_baseline = {
@@ -3298,19 +4031,23 @@ class AliveLoopNode:
                     "vibration_events": environment.vibration_events,
                     "network_threats": environment.network_threats,
                     "behavior_threats": environment.behavior_threats,
-                    "timestamp": environment.timestamp
+                    "timestamp": environment.timestamp,
                 }
-                logger.info(f"Node {self.node_id}: Frequency baseline established")
-            
+                logger.info(
+                    f"Node {self.node_id}: Frequency baseline established"
+                )
+
             # Store threats
             if environment.active_correlations:
                 for correlation_type in environment.active_correlations:
-                    self.frequency_threats.append({
-                        "type": correlation_type.value,
-                        "timestamp": environment.timestamp,
-                        "threat_score": environment.overall_threat_score
-                    })
-            
+                    self.frequency_threats.append(
+                        {
+                            "type": correlation_type.value,
+                            "timestamp": environment.timestamp,
+                            "threat_score": environment.overall_threat_score,
+                        }
+                    )
+
             return {
                 "timestamp": environment.timestamp,
                 "overall_threat_score": environment.overall_threat_score,
@@ -3321,86 +4058,111 @@ class AliveLoopNode:
                 "network_threats": environment.network_threats,
                 "behavior_threats": environment.behavior_threats,
                 "authentication_status": environment.authentication_status,
-                "active_correlations": [c.value for c in environment.active_correlations]
+                "active_correlations": [
+                    c.value for c in environment.active_correlations
+                ],
             }
-            
+
         except Exception as e:
             logger.error(f"Node {self.node_id}: Frequency analysis error: {e}")
             return {"error": str(e)}
-    
+
     def adapt_to_frequency_threats(self) -> List[str]:
         """
         Adapt behavior based on detected frequency threats.
-        
+
         Returns:
             List of actions taken
         """
-        if not self._frequency_intelligence_enabled or not self.frequency_sensors:
+        if (
+            not self._frequency_intelligence_enabled
+            or not self.frequency_sensors
+        ):
             return []
-        
+
         actions = []
-        
+
         try:
             # Get threat report
             threat_report = self.frequency_sensors.get_threat_report()
-            
-            threat_score = threat_report["current_environment"]["overall_threat_score"]
+
+            threat_score = threat_report["current_environment"][
+                "overall_threat_score"
+            ]
             active_correlations = threat_report["active_correlations"]
-            
+
             # Adapt behavior based on threat level
             if threat_score > 0.7:
                 # High threat - enter defensive mode
                 self.threat_assessment_level = 3  # Critical
-                
+
                 # Reduce energy consumption for critical systems only
                 if self.energy > 2.0:
-                    actions.append("Entered defensive mode - reducing non-critical operations")
-                
+                    actions.append(
+                        "Entered defensive mode - reducing non-critical operations"
+                    )
+
                 # Increase anxiety proportionally
                 self.anxiety = min(10.0, self.anxiety + threat_score * 2)
-                actions.append(f"Heightened anxiety due to threat level: {threat_score:.2f}")
-                
+                actions.append(
+                    f"Heightened anxiety due to threat level: {threat_score:.2f}"
+                )
+
             elif threat_score > 0.4:
                 # Medium threat - elevated awareness
                 self.threat_assessment_level = 2  # High
                 actions.append("Elevated threat awareness")
-                
+
                 # Moderate anxiety increase
                 self.anxiety = min(10.0, self.anxiety + threat_score)
-            
+
             else:
                 # Low/no threat - normal operations
-                self.threat_assessment_level = max(0, self.threat_assessment_level - 1)
-            
+                self.threat_assessment_level = max(
+                    0, self.threat_assessment_level - 1
+                )
+
             # Handle specific threat correlations
             if "physical_cyber_attack" in active_correlations:
                 # Physical + cyber attack - activate all defenses
-                actions.append("Physical-cyber attack detected - activating countermeasures")
+                actions.append(
+                    "Physical-cyber attack detected - activating countermeasures"
+                )
                 self.emergency_mode = True
-                
+
             if "apt_campaign" in active_correlations:
                 # APT campaign - increase monitoring
-                actions.append("APT campaign detected - increasing surveillance")
-                
+                actions.append(
+                    "APT campaign detected - increasing surveillance"
+                )
+
             if "insider_threat" in active_correlations:
                 # Insider threat - restrict access
-                actions.append("Insider threat detected - restricting sensitive operations")
-                
+                actions.append(
+                    "Insider threat detected - restricting sensitive operations"
+                )
+
             if "coordinated_attack" in active_correlations:
                 # Coordinated attack - emergency protocols
-                actions.append("Coordinated attack detected - emergency protocols activated")
+                actions.append(
+                    "Coordinated attack detected - emergency protocols activated"
+                )
                 self.emergency_mode = True
                 self.survival_mode_active = True
-            
+
             # Log recommendations
-            for recommendation in threat_report["recommendations"][:3]:  # Top 3
+            for recommendation in threat_report["recommendations"][
+                :3
+            ]:  # Top 3
                 actions.append(f"Recommendation: {recommendation}")
-            
+
             if actions:
-                logger.info(f"Node {self.node_id} adapted to frequency threats: {len(actions)} actions")
-            
+                logger.info(
+                    f"Node {self.node_id} adapted to frequency threats: {len(actions)} actions"
+                )
+
             return actions
-            
+
         except Exception as e:
             logger.error(f"Node {self.node_id}: Threat adaptation error: {e}")
             return [f"Error: {e}"]
@@ -3409,9 +4171,15 @@ class AliveLoopNode:
 # Example usage in a multi-node simulation
 def run_social_simulation():
     # Create nodes
-    node1 = AliveLoopNode(position=(0, 0), velocity=(0, 0), initial_energy=15.0, node_id=1)
-    node2 = AliveLoopNode(position=(2, 0), velocity=(0, 0), initial_energy=12.0, node_id=2)
-    node3 = AliveLoopNode(position=(0, 2), velocity=(0, 0), initial_energy=10.0, node_id=3)
+    node1 = AliveLoopNode(
+        position=(0, 0), velocity=(0, 0), initial_energy=15.0, node_id=1
+    )
+    node2 = AliveLoopNode(
+        position=(2, 0), velocity=(0, 0), initial_energy=12.0, node_id=2
+    )
+    node3 = AliveLoopNode(
+        position=(0, 2), velocity=(0, 0), initial_energy=10.0, node_id=3
+    )
 
     nodes = [node1, node2, node3]
 
@@ -3441,7 +4209,10 @@ def run_social_simulation():
             node.move()
 
             # Display social status
-            logger.debug(f"Node {node.node_id}: Trust network: {node.trust_network}")
+            logger.debug(
+                f"Node {node.node_id}: Trust network: {node.trust_network}"
+            )
+
 
 if __name__ == "__main__":
     run_social_simulation()

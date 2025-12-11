@@ -5,13 +5,14 @@ import sys
 import os
 
 # Ensure project root is on sys.path so 'core' can be imported when running from simulation
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from core.evolution_engine import EvolutionEngine, StrategyType
 from core.adaptive_learning import Observation, BehaviorType
 from core.symbiosis_fitness import evaluate_symbiosis
 
 # --- KREATOR ŚWIATA (SCENARIUSZE) ---
+
 
 def generate_bio_rhythm_scenario(length=200, chaos_level=0.0):
     """
@@ -20,35 +21,39 @@ def generate_bio_rhythm_scenario(length=200, chaos_level=0.0):
     """
     data = []
     base_val = 10.0
-    
+
     for t in range(length):
         # 1. Normalny rytm (sinusoida + lekki szum)
         val = base_val + math.sin(t * 0.2) * 2.0 + random.gauss(0, 0.2)
-        
+
         # 2. Zdarzenia losowe (Chaos/Fizyka)
         if random.random() < chaos_level:
-            val += random.uniform(-5.0, 5.0) # Szum tła (ciekawość powinna to lubić)
+            val += random.uniform(
+                -5.0, 5.0
+            )  # Szum tła (ciekawość powinna to lubić)
 
         # 3. Anomalie (Choroba/Atak) - to testuje frustrację i agresję
         # Występują rzadko, ale są silne
         if 50 < t < 70:  # "Infekcja" w środku symulacji
-            val += 8.0   # Skok powyżej normy
-        
+            val += 8.0  # Skok powyżej normy
+
         # Tworzymy obserwację
         obs = Observation(
             timestamp=time.time() + t,
             value=val,
-            behavior_type=BehaviorType.SYMBIOTIC_TEST
+            behavior_type=BehaviorType.SYMBIOTIC_TEST,
         )
         data.append(obs)
-            
+
     return data
+
 
 # --- KONFIGURACJA EWOLUCJI ---
 
+
 def run_cyber_evolution():
     print("=== INICJALIZACJA SYMULACJI: CYFROWA BIOLOGIA v1 ===")
-    
+
     # 1. Definiujemy DNA (zakresy parametrów)
     dna_ranges = {
         "learning_rate": (0.001, 0.1),
@@ -58,7 +63,7 @@ def run_cyber_evolution():
         "threshold_sensitivity": (0.1, 0.9),
         "motivation_sensitivity": (0.1, 0.9),
         "joy_gain": (0.01, 0.1),
-        "motivation_decay_per_sec": (0.0001, 0.001)
+        "motivation_decay_per_sec": (0.0001, 0.001),
     }
 
     # 2. Tworzymy silnik ewolucyjny
@@ -66,7 +71,7 @@ def run_cyber_evolution():
         population_size=20,
         mutation_rate=0.1,
         elitism_count=3,
-        persistence_dir="sim_data"
+        persistence_dir="sim_data",
     )
 
     engine.initialize_population(StrategyType.THRESHOLD, dna_ranges)
@@ -80,32 +85,41 @@ def run_cyber_evolution():
 
     for gen in range(generations):
         print(f"--- POKOLENIE {gen + 1} ---")
-        
+
         def evaluation_wrapper(strategy):
             return evaluate_symbiosis(strategy, scenario_data)
 
-        stats = engine.evolve_generation(StrategyType.THRESHOLD, evaluation_wrapper)
-        
+        stats = engine.evolve_generation(
+            StrategyType.THRESHOLD, evaluation_wrapper
+        )
+
         best_dna = engine.get_best_strategy(StrategyType.THRESHOLD)
-        
+
         print(f"  Najlepszy Fitness (Radość): {stats['best_fitness']:.4f}")
         print(f"  Średnia populacji: {stats['avg_fitness']:.4f}")
-        
+
         if best_dna:
             p = best_dna.parameters
             personality = "Nieznana"
-            if p['calmness'] > 0.7: personality = "Mędrzec (Wysoki Spokój)"
-            elif p['calmness'] < 0.3: personality = "Wojownik (Niski Spokój)"
-            elif p['curiosity_drive'] > 0.3: personality = "Odkrywca (Ciekawski)"
-            else: personality = "Zbalansowany"
-            
+            if p["calmness"] > 0.7:
+                personality = "Mędrzec (Wysoki Spokój)"
+            elif p["calmness"] < 0.3:
+                personality = "Wojownik (Niski Spokój)"
+            elif p["curiosity_drive"] > 0.3:
+                personality = "Odkrywca (Ciekawski)"
+            else:
+                personality = "Zbalansowany"
+
             print(f"  Dominujący Fenotyp: {personality}")
-            print(f"  Cechy: Calm={p['calmness']:.2f}, Curiosity={p['curiosity_drive']:.2f}, LearnRate={p['learning_rate']:.3f}")
+            print(
+                f"  Cechy: Calm={p['calmness']:.2f}, Curiosity={p['curiosity_drive']:.2f}, LearnRate={p['learning_rate']:.3f}"
+            )
 
     print("\n=== SYMULACJA ZAKOŃCZONA ===")
     winner = engine.get_best_strategy(StrategyType.THRESHOLD)
     print("Zwycięski Genotyp (Najlepsze AI do tego środowiska):")
     print(winner.parameters)
+
 
 if __name__ == "__main__":
     run_cyber_evolution()
