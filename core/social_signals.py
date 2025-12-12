@@ -1,59 +1,101 @@
-"""Social signal infrastructure for node-to-node communication.
+# core/social_signals.py
+"""
+Robust SocialSignal dataclass compatible with multiple call-sites.
 
-This module provides structured signals with production features including:
-- Idempotency keys
-- Correlation IDs for distributed tracing
-- Partition keys for ordering guarantees
-- Schema versioning for evolution
-- Retry tracking
+This implementation accepts both:
+ - source_id and source_node_id (alias)
+ - target_id and target_node_id (alias)
+ - content and data (alias)
+and normalizes them to canonical attributes used across the codebase.
 """
 
-import uuid
-from typing import Any
+from __future__ import annotations
 
-from core.time_manager import get_timestamp
+from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
+from uuid import uuid4, UUID
+import time
 
 
+def _now_timestamp() -> int:
+    return int(time.time())
+
+
+@dataclass
 class SocialSignal:
-    """Structured signal for node-to-node communication with production features"""
+    # canonical attributes
+    signal_id: UUID = field(default_factory=uuid4)
+    signal_type: str = "generic"
+    content: Any = None  # canonical content field
+    source_id: Optional[int] = None
+    target_id: Optional[int] = None
+    urgency: float = 0.5
+    requires_response: bool = False
+    idempotency_key: Optional[str] = None
+    partition_key: Optional[str] = None
+    correlation_id: Optional[str] = None
+    processing_attempts: List[Dict[str, Any]] = field(default_factory=list)
+    timestamp: int = field(default_factory=_now_timestamp)
+    # backward-compat alias container for any extra data
+    meta: Dict[str, Any] = field(default_factory=dict)
 
     def __init__(
         self,
-        content: Any,
-        signal_type: str,
-        urgency: float,
-        source_id: int,
+        *,
+        signal_type: Optional[str] = None,
+        content: Any = None,
+        data: Any = None,
+        source_id: Optional[int] = None,
+        source_node_id: Optional[int] = None,
+        target_id: Optional[int] = None,
+        target_node_id: Optional[int] = None,
+        urgency: float = 0.5,
         requires_response: bool = False,
-        idempotency_key: str | None = None,
-        partition_key: str | None = None,
-        correlation_id: str | None = None,
-        schema_version: str = "1.0",
+        idempotency_key: Optional[str] = None,
+        partition_key: Optional[str] = None,
+        correlation_id: Optional[str] = None,
+        signal_id: Optional[UUID] = None,
+        timestamp: Optional[int] = None,
+        meta: Optional[Dict[str, Any]] = None,
+        **kwargs,
     ):
-        self.id = str(uuid.uuid4())
-        self.content = content
-        self.signal_type = (
-            signal_type  # 'memory', 'query', 'warning', 'resource'
-        )
-        self.urgency = urgency  # 0.0 to 1.0
-        self.source_id = source_id
-        self.timestamp = get_timestamp()
-        self.requires_response = requires_response
-        self.response = None
+        """
+        Accept many common constructor argument names and normalize them.
 
-        # Production features
-        self.idempotency_key = (
-            idempotency_key
-            or f"{source_id}_{signal_type}_{uuid.uuid4().hex[:8]}"
+        Examples of accepted constructor kwargs seen across code/tests:
+            - source_node_id (alias for source_id)
+            - target_node_id (alias for target_id)
+            - data (alias for content)
+            - source_id, target_id, content
+        """
+        # canonical mapping
+        self.signal_id = signal_id or uuid4()
+        self.signal_type = signal_type or "generic"
+        # prefer explicit content param, otherwise accept data
+        self.content = content if content is not None else data
+        # accept alias names
+        self.source_id = source_id if source_id is not None else source_node_id
+        self.target_id = target_id if target_id is not None else target_node_id
+        self.urgency = float(urgency) if urgency is not None else 0.5
+        self.requires_response = bool(requires_response)
+        self.idempotency_key = idempotency_key
+        self.partition_key = partition_key
+        self.correlation_id = correlation_id
+        self.processing_attempts = []
+        self.timestamp = int(timestamp) if timestamp is not None else _now_timestamp()
+        self.meta = meta or {}
+        # keep any extra kwargs for forwards compatibility
+        if kwargs:
+            # store unexpected extra keys to meta for debugging / migration safety
+            self.meta.setdefault("_extra_kwargs", {}).update(kwargs)
+
+    def mark_attempt(self, node_id: int, correlation_id: Optional[str] = None) -> None:
+        self.processing_attempts.append(
+            {"node_id": node_id, "timestamp": _now_timestamp(), "correlation_id": correlation_id}
         )
-        self.partition_key = (
-            partition_key or f"{source_id}_{signal_type}"
-        )  # For ordering guarantees
-        self.correlation_id = correlation_id or str(
-            uuid.uuid4()
-        )  # For distributed tracing
-        self.schema_version = schema_version  # For schema evolution
-        self.retry_count = 0  # Track retry attempts
-        self.created_at = (
-            get_timestamp()
-        )  # Creation timestamp for age calculation
-        self.processing_attempts = []  # Track processing history
+
+    def __repr__(self) -> str:
+        return (
+            f"SocialSignal(type={self.signal_type!r}, id={str(self.signal_id)[:8]}, "
+            f"src={self.source_id!r}, tgt={self.target_id!r}, urgency={self.urgency!r})"
+        )
